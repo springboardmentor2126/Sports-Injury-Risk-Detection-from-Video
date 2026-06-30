@@ -818,7 +818,7 @@ function Comparison({
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "oklch(0.6 0.02 150)", fontSize: 10 }} />
               <Radar name="Current" dataKey="current" stroke="oklch(0.86 0.21 130)" fill="oklch(0.86 0.21 130)" fillOpacity={0.35} />
               <Radar name="Baseline" dataKey="baseline" stroke="oklch(0.7 0.18 200)" fill="oklch(0.7 0.18 200)" fillOpacity={0.25} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <RechartsLegend wrapperStyle={{ fontSize: 11 }} />
             </RadarChart>
           </ResponsiveContainer>
         </div>
