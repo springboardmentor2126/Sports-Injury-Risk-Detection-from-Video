@@ -34,7 +34,7 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   ResponsiveContainer,
-  Legend,
+  Legend as RechartsLegend,
 } from "recharts";
 import jsPDF from "jspdf";
 import { toast, Toaster } from "sonner";
