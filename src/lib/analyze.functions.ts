@@ -73,9 +73,9 @@ You are given ${data.frames.length} sequential keyframes from a single performan
 Analyze pose, joint alignment, valgus/varus tendencies, trunk lean, landing softness,
 stride symmetry, arm mechanics, and balance. Produce the structured report.`;
 
-    const { experimental_output } = await generateText({
+    const { output } = await generateText({
       model,
-      experimental_output: Output.object({ schema: AnalysisSchema }),
+      output: Output.object({ schema: AnalysisSchema }),
       messages: [
         { role: "system", content: system },
         {
@@ -91,5 +91,5 @@ stride symmetry, arm mechanics, and balance. Produce the structured report.`;
       ],
     });
 
-    return experimental_output;
+    return output;
   });
