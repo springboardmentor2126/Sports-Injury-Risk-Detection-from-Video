@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link as RouterLink } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -408,6 +409,12 @@ function Index() {
 }
 
 function Header() {
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setEmail(s?.user.email ?? null));
+    return () => sub.subscription.unsubscribe();
+  }, []);
   return (
     <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-30">
       <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
@@ -418,9 +425,18 @@ function Header() {
           <span className="font-display text-lg font-bold tracking-tight">KinetIQ</span>
           <span className="ml-2 text-[10px] uppercase tracking-widest text-primary font-mono">AI Coach</span>
         </div>
-        <nav className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#how" className="hover:text-foreground">How it works</a>
-          <a href="https://docs.lovable.dev" target="_blank" rel="noreferrer" className="hover:text-foreground">Docs</a>
+        <nav className="flex items-center gap-4 text-sm text-muted-foreground">
+          <a href="#how" className="hidden sm:inline hover:text-foreground">How it works</a>
+          {email ? (
+            <RouterLink to="/profile" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary">
+              <span className="max-w-[140px] truncate">{email}</span>
+              <span className="text-primary">Profile →</span>
+            </RouterLink>
+          ) : (
+            <RouterLink to="/auth" className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">
+              Sign in
+            </RouterLink>
+          )}
         </nav>
       </div>
     </header>
