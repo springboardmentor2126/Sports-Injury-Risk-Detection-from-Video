@@ -104,7 +104,7 @@ export type AnalysisJoint = AnalysisResult["frameStress"][number]["joints"][numb
 export const analyzePose = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => InputSchema.parse(d))
   .handler(async ({ data }): Promise<AnalysisResult> => {
-    const key = process.env.AI_API_KEY || process.env.LOVABLE_API_KEY;
+    const key = process.env.AI_API_KEY;
     if (!key) throw new Error("AI_API_KEY not configured");
 
     const gateway = createAiGatewayProvider(key);
