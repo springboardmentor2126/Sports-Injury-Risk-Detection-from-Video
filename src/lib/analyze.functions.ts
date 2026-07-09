@@ -108,7 +108,8 @@ export const analyzePose = createServerFn({ method: "POST" })
     if (!key) throw new Error("AI_API_KEY not configured");
 
     const gateway = createAiGatewayProvider(key);
-    const modelName = key.startsWith("AIzaSy") ? "gemini-2.0-flash" : "google/gemini-3-flash-preview";
+    const isDirectGoogle = key.startsWith("AIzaSy") || !key.includes("LDubc7hnFLTbkxX9ZJRmIHwzsmKY_E1nLhqHoyXRKyBg");
+    const modelName = isDirectGoogle ? "gemini-2.0-flash" : "google/gemini-3-flash-preview";
     const model = gateway(modelName);
 
     const system = `You are an elite sports biomechanics coach and physiotherapist.
