@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { createAiGatewayProvider } from "./ai-gateway.server";
 
 const InputSchema = z.object({
   sport: z.string(),
@@ -104,10 +104,10 @@ export type AnalysisJoint = AnalysisResult["frameStress"][number]["joints"][numb
 export const analyzePose = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => InputSchema.parse(d))
   .handler(async ({ data }): Promise<AnalysisResult> => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY not configured");
+    const key = process.env.AI_API_KEY || process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("AI_API_KEY not configured");
 
-    const gateway = createLovableAiGatewayProvider(key);
+    const gateway = createAiGatewayProvider(key);
     const model = gateway("google/gemini-3-flash-preview");
 
     const system = `You are an elite sports biomechanics coach and physiotherapist.

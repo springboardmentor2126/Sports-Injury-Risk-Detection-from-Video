@@ -370,7 +370,7 @@ function Index() {
                 )}
               </button>
               <p className="text-xs text-muted-foreground text-center">
-                Powered by Lovable AI Vision
+                Powered by KinetIQ Biomechanics AI
               </p>
             </div>
           </div>
