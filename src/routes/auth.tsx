@@ -65,16 +65,17 @@ function AuthPage() {
 
   const onGoogle = async () => {
     setBusy(true);
-    const result = await cloudAuth.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/profile`,
+      },
     });
-    if (result.error) {
+    if (error) {
       setBusy(false);
-      toast.error(result.error.message || "Google sign-in failed");
+      toast.error(error.message || "Google sign-in failed");
       return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/profile" });
   };
 
   return (
