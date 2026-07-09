@@ -108,7 +108,8 @@ export const analyzePose = createServerFn({ method: "POST" })
     if (!key) throw new Error("AI_API_KEY not configured");
 
     const gateway = createAiGatewayProvider(key);
-    const model = gateway("google/gemini-3-flash-preview");
+    const modelName = key.startsWith("AIzaSy") ? "gemini-2.0-flash" : "google/gemini-3-flash-preview";
+    const model = gateway(modelName);
 
     const system = `You are an elite sports biomechanics coach and physiotherapist.
 You analyze sequential keyframes (with timestamps in seconds) of an athlete and assess
