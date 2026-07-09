@@ -9,15 +9,14 @@ export function createAiGatewayProvider(apiKey: string) {
     return createOpenAICompatible({
       name: "gemini",
       baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
+      apiKey: apiKey,
     });
   }
 
   return createOpenAICompatible({
     name: "gateway",
     baseURL: "https://ai.gateway.lovable.dev/v1",
+    apiKey: apiKey,
     headers: {
       "Lovable-API-Key": apiKey,
       "X-Lovable-AIG-SDK": "vercel-ai-sdk",
