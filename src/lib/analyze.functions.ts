@@ -146,9 +146,9 @@ frameStress for the heatmap and riskyMoments tied to the timestamps above.`;
 
     const { output } = await generateText({
       model,
+      system: system,
       output: Output.object({ schema: AnalysisSchema }),
       messages: [
-        { role: "system", content: system },
         {
           role: "user",
           content: [
