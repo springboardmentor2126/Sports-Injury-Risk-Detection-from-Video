@@ -20,6 +20,7 @@ export default function Navbar() {
         {user ? (
           <>
             <Link to="/athletes">Athletes</Link>
+            <Link to="/videos">Videos</Link>
             <span className="navbar-user">
               {user.full_name} ({user.role})
             </span>

@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 from . import models
 from .database import get_db
 
-
+# NOTE: move this to an environment variable before production deployment.
 SECRET_KEY = "CHANGE_ME_super_secret_key_for_dev_only"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8 
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 hours
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -57,6 +57,10 @@ def get_current_user(
 
 
 def require_roles(allowed_roles: List[str]):
+    """
+    Dependency factory for role-based access control.
+    Usage: Depends(require_roles(["coach", "admin"]))
+    """
     def role_checker(current_user: models.User = Depends(get_current_user)):
         if current_user.role.value not in allowed_roles:
             raise HTTPException(

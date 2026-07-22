@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, ConfigDict
 
-from .models import RoleEnum
+from .models import RoleEnum, VideoStatusEnum, ActivityTypeEnum
 
 
 # ---------- Auth / User ----------
@@ -71,3 +71,45 @@ class AthleteOut(AthleteBase):
     user_id: Optional[int]
     created_at: datetime
     updated_at: datetime
+
+
+# ---------- Video / Pose / Biomechanics (Milestone 2) ----------
+
+class VideoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    athlete_id: int
+    activity_type: ActivityTypeEnum
+    filename: str
+    status: VideoStatusEnum
+    duration_seconds: Optional[float]
+    frames_processed: Optional[int]
+    error_message: Optional[str]
+    uploaded_at: datetime
+    processed_at: Optional[datetime]
+
+
+class BiomechanicsReportOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    video_id: int
+    avg_left_knee_angle: Optional[float]
+    avg_right_knee_angle: Optional[float]
+    knee_valgus_score: Optional[float]
+    hip_stability_score: Optional[float]
+    trunk_lean_degrees: Optional[float]
+    landing_mechanics_score: Optional[float]
+    stride_length_ratio: Optional[float]
+    joint_alignment_score: Optional[float]
+    balance_score: Optional[float]
+    movement_symmetry_score: Optional[float]
+    movement_quality_score: Optional[float]
+    risk_category: Optional[str]
+    notes: Optional[str]
+    created_at: datetime
+
+
+class VideoWithReportOut(VideoOut):
+    report: Optional[BiomechanicsReportOut] = None

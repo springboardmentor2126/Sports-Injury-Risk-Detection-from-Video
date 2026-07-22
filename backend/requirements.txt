@@ -3,6 +3,11 @@ uvicorn
 sqlalchemy
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt==4.0.1
 python-multipart
 pydantic
 email-validator
+opencv-python-headless
+mediapipe
+numpy
+aiofiles

@@ -26,7 +26,10 @@ export default function AthleteDetail() {
         <p><strong>Training Load:</strong> {athlete.training_load || "-"}</p>
         <p><strong>Injury History:</strong> {athlete.injury_history || "None recorded"}</p>
       </div>
-      <Link to="/athletes">&larr; Back to list</Link>
+      <div className="detail-actions">
+        <Link className="btn" to={`/videos/upload?athlete_id=${athlete.id}`}>Upload Movement Video</Link>
+        <Link to="/athletes">&larr; Back to list</Link>
+      </div>
     </div>
   );
 }

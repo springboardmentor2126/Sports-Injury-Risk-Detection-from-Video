@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models
 from .database import engine
-from .routers import auth, athletes
+from .routers import auth, athletes, videos
 
 # Creates injury_risk.db and all tables on first run.
 models.Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(athletes.router)
+app.include_router(videos.router)
 
 
 @app.get("/")

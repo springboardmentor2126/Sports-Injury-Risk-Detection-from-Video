@@ -48,4 +48,29 @@ export const api = {
   createAthlete: (data) => request("/athletes/", { method: "POST", body: data }),
   updateAthlete: (id, data) => request(`/athletes/${id}`, { method: "PUT", body: data }),
   deleteAthlete: (id) => request(`/athletes/${id}`, { method: "DELETE" }),
+
+  // Videos / Pose Estimation / Biomechanics (Milestone 2)
+  uploadVideo: async (athleteId, activityType, file) => {
+    const form = new FormData();
+    form.append("athlete_id", athleteId);
+    form.append("activity_type", activityType);
+    form.append("file", file);
+    const token = getToken();
+    const res = await fetch(`${BASE_URL}/videos/upload`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    if (!res.ok) {
+      let detail = "Upload failed";
+      try { detail = (await res.json()).detail || detail; } catch (_) {}
+      throw new Error(detail);
+    }
+    return res.json();
+  },
+  processVideo: (id) => request(`/videos/${id}/process`, { method: "POST" }),
+  listVideos: (athleteId) =>
+    request(`/videos/${athleteId ? `?athlete_id=${athleteId}` : ""}`),
+  getVideo: (id) => request(`/videos/${id}`),
+  deleteVideo: (id) => request(`/videos/${id}`, { method: "DELETE" }),
 };

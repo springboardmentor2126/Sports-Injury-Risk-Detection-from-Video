@@ -4,6 +4,10 @@ __pycache__/
 venv/
 *.db
 
+# Uploaded videos
+backend/app/uploads/*
+!backend/app/uploads/.gitkeep
+
 # Node
 node_modules/
 dist/
