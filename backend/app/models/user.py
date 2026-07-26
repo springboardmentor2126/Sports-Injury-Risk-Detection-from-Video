@@ -44,9 +44,11 @@ class User(Base):
     last_name = Column(String(100), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
+    invite_code = Column(String(10), unique=True, index=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     role = relationship("Role", back_populates="users")
-    athlete_profile = relationship("AthleteProfile", back_populates="user", uselist=False)
+    athlete_profile = relationship("AthleteProfile", back_populates="user", uselist=False, foreign_keys="[AthleteProfile.user_id]")
+    video_analyses  = relationship("VideoAnalysis",  back_populates="user", order_by="VideoAnalysis.created_at.desc()")

@@ -40,6 +40,7 @@ class UserResponse(BaseModel):
     last_name: str
     is_active: bool
     role: RoleResponse
+    invite_code: Optional[str] = None
     created_at: datetime
 
     class Config:

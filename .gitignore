@@ -1,3 +1,11 @@
+# ML Model files (large binaries — download separately)
+*.task
+*.tflite
+
+# Local test outputs
+backend/test_outputs/
+backend/uploads/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -13,6 +13,10 @@ class AthleteProfile(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False)
 
+    # Professional links
+    linked_coach_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    linked_physio_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+
     # Sports info
     sport_type = Column(String(100), nullable=False)   # e.g., Basketball, Soccer
     position = Column(String(100), nullable=True)       # e.g., Striker, Point Guard
@@ -31,7 +35,7 @@ class AthleteProfile(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    user = relationship("User", back_populates="athlete_profile")
+    user = relationship("User", back_populates="athlete_profile", foreign_keys=[user_id])
     injury_histories = relationship("InjuryHistory", back_populates="athlete_profile", cascade="all, delete-orphan")
 
 

@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from app.core.database import engine, Base
-from app.api.routes import auth
+from app.api.routes import auth, athletes, video
 
 # Import all models so SQLAlchemy can create their tables
-from app.models import user, athlete  # noqa: F401
+from app.models import user, athlete, video_analysis  # noqa: F401
 
 # Create all database tables on startup
 Base.metadata.create_all(bind=engine)
@@ -25,8 +27,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ─── Static Files (annotated pose images served to frontend) ───
+uploads_path = Path("uploads")
+uploads_path.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 # ─── Routers ───────────────────────────────────────────────────
 app.include_router(auth.router)
+app.include_router(athletes.router)
+app.include_router(video.router)
 
 
 # ─── Health Check ──────────────────────────────────────────────

@@ -5,6 +5,7 @@ from app.core.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token, decode_access_token
 from app.models.user import User, Role
 from app.schemas.user import UserCreate, UserResponse, Token
+import secrets
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -33,6 +34,12 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Invalid role selected."
         )
 
+    # Generate invite code for professionals
+    invite_code = None
+    if role.name in ["coach", "physiotherapist"]:
+        # generate 6 char hex code e.g. 8A3F9B
+        invite_code = secrets.token_hex(3).upper()
+
     # Create new user
     new_user = User(
         email=user_data.email,
@@ -40,6 +47,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         first_name=user_data.first_name,
         last_name=user_data.last_name,
         role_id=user_data.role_id,
+        invite_code=invite_code
     )
     db.add(new_user)
     db.commit()
@@ -91,3 +99,35 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 def get_me(current_user: User = Depends(get_current_user)):
     """Get the profile of the currently logged-in user."""
     return current_user
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_me(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    Delete the current user's account and all associated data.
+    This includes their athlete profile, all video analyses, and saved physical files.
+    """
+    import shutil
+    from pathlib import Path
+    from app.models.athlete import AthleteProfile
+    from app.models.video_analysis import VideoAnalysis
+    
+    # 1. Delete associated physical files (video analysis outputs)
+    analyses = db.query(VideoAnalysis).filter(VideoAnalysis.user_id == str(current_user.id)).all()
+    output_dir_base = Path("uploads/pose_outputs")
+    for analysis in analyses:
+        session_dir = output_dir_base / analysis.session_id
+        if session_dir.exists() and session_dir.is_dir():
+            shutil.rmtree(session_dir, ignore_errors=True)
+    
+    # 2. Delete DB records
+    # Due to SQLAlchemy relationships without cascade="all, delete-orphan", 
+    # we manually delete children to avoid foreign key constraint errors.
+    db.query(VideoAnalysis).filter(VideoAnalysis.user_id == str(current_user.id)).delete()
+    db.query(AthleteProfile).filter(AthleteProfile.user_id == str(current_user.id)).delete()
+    
+    # 3. Delete the user
+    db.delete(current_user)
+    db.commit()
+    
+    return None

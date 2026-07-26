@@ -8,3 +8,8 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-multipart==0.0.9
 python-dotenv==1.0.1
+
+# ── Milestone 2: Pose Estimation & Biomechanics ────────────────
+mediapipe==0.10.35
+opencv-python==5.0.0.93
+numpy>=1.24.0
