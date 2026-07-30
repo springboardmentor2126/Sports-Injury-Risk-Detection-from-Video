@@ -45,49 +45,49 @@
 :root {
   --radius: 0.75rem;
 
-  /* Athletic dark theme — turf green + electric lime + signal red */
-  --background: oklch(0.18 0.02 160);
-  --foreground: oklch(0.97 0.01 120);
+  /* Premium Glacier Ice-Blue dark theme */
+  --background: #0a0e1a;
+  --foreground: #e0e8f0;
 
-  --card: oklch(0.22 0.025 160);
-  --card-foreground: oklch(0.97 0.01 120);
+  --card: #0f1524;
+  --card-foreground: #e0e8f0;
 
-  --popover: oklch(0.22 0.025 160);
-  --popover-foreground: oklch(0.97 0.01 120);
+  --popover: #0f1524;
+  --popover-foreground: #e0e8f0;
 
-  --primary: oklch(0.86 0.21 130); /* electric lime */
-  --primary-foreground: oklch(0.18 0.04 160);
+  --primary: #7dd3fc; /* cyan/glacier ice blue */
+  --primary-foreground: #001f2e;
 
-  --secondary: oklch(0.28 0.04 165);
-  --secondary-foreground: oklch(0.97 0.01 120);
+  --secondary: #88b4cc;
+  --secondary-foreground: #0d1f2b;
 
-  --muted: oklch(0.26 0.02 160);
-  --muted-foreground: oklch(0.72 0.02 150);
+  --muted: #1a2438;
+  --muted-foreground: #a0b4c4;
 
-  --accent: oklch(0.55 0.18 200);
-  --accent-foreground: oklch(0.97 0.01 120);
+  --accent: #c8a0f0;
+  --accent-foreground: #1a002e;
 
-  --destructive: oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: #ff6b6b;
+  --destructive-foreground: #1a0000;
 
-  --success: oklch(0.78 0.18 145);
-  --warning: oklch(0.82 0.17 75);
-  --danger: oklch(0.65 0.23 22);
+  --success: #88b4cc;
+  --warning: #c8a0f0;
+  --danger: #ff6b6b;
 
-  --border: oklch(0.32 0.02 160 / 60%);
-  --input: oklch(0.3 0.02 160);
-  --ring: oklch(0.86 0.21 130);
+  --border: rgba(125, 211, 252, 0.1);
+  --input: #141c2e;
+  --ring: #7dd3fc;
 
-  --chart-1: oklch(0.86 0.21 130);
-  --chart-2: oklch(0.7 0.18 200);
-  --chart-3: oklch(0.78 0.18 75);
-  --chart-4: oklch(0.65 0.23 22);
-  --chart-5: oklch(0.75 0.14 280);
+  --chart-1: #7dd3fc;
+  --chart-2: #88b4cc;
+  --chart-3: #c8a0f0;
+  --chart-4: #ff6b6b;
+  --chart-5: #a0b4c4;
 }
 
 .dark {
-  --background: oklch(0.18 0.02 160);
-  --foreground: oklch(0.97 0.01 120);
+  --background: #0a0e1a;
+  --foreground: #e0e8f0;
 }
 
 @layer base {
@@ -106,5 +106,49 @@
 }
 
 @utility glow-primary {
-  box-shadow: 0 0 0 1px oklch(0.86 0.21 130 / 30%), 0 10px 40px -10px oklch(0.86 0.21 130 / 40%);
+  box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.2), 0 10px 40px -10px rgba(125, 211, 252, 0.3);
+}
+
+.text-glow {
+  text-shadow: 0 0 12px rgba(125, 211, 252, 0.4);
+}
+
+/* Glassmorphism Mockup styles */
+.glass-card {
+  background: rgba(15, 21, 36, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(125, 211, 252, 0.1);
+}
+
+.glass-card-elevated {
+  background: rgba(15, 21, 36, 0.75);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(125, 211, 252, 0.15);
+}
+
+.ice-glow {
+  box-shadow: 0 0 30px rgba(125, 211, 252, 0.05);
+}
+
+/* Theme color mappings from mockup */
+.bg-surface-container {
+  background-color: #141c2e;
+}
+.bg-surface-container-low {
+  background-color: #111828;
+}
+.bg-surface-container-lowest {
+  background-color: #0a0e1a;
+}
+.bg-surface-container-highest {
+  background-color: #202c42;
+}
+.text-on-surface-variant {
+  color: #a0b4c4;
+}
+.border-outline-variant {
+  border-color: #2a3a48;
+}
+.border-outline {
+  border-color: #4a6070;
 }

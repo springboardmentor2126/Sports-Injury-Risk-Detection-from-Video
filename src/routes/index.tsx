@@ -67,6 +67,23 @@ export const Route = createFileRoute("/")({
 
 const SPORTS = ["General / Auto-detect", "Running / Sprinting", "Cricket – Batting", "Cricket – Bowling", "Football / Soccer", "Basketball", "Tennis", "Weightlifting"];
 
+const SKELETON_CONNECTIONS = [
+  ["head", "neck"],
+  ["neck", "leftShoulder"],
+  ["neck", "rightShoulder"],
+  ["leftShoulder", "leftElbow"],
+  ["leftElbow", "leftWrist"],
+  ["rightShoulder", "rightElbow"],
+  ["rightElbow", "rightWrist"],
+  ["leftShoulder", "leftHip"],
+  ["rightShoulder", "rightHip"],
+  ["leftHip", "rightHip"],
+  ["leftHip", "leftKnee"],
+  ["leftKnee", "leftAnkle"],
+  ["rightHip", "rightKnee"],
+  ["rightKnee", "rightAnkle"],
+];
+
 type Granularity = "low" | "medium" | "high";
 const GRANULARITY: Record<Granularity, { count: number; label: string; sub: string }> = {
   low: { count: 6, label: "Quick", sub: "6 frames · fastest" },
@@ -75,7 +92,56 @@ const GRANULARITY: Record<Granularity, { count: number; label: string; sub: stri
 };
 const MAX_FRAME_WIDTH = 720;
 
-type ExtractedFrame = { dataUrl: string; timeSec: number };
+type ExtractedFrame = {
+  dataUrl: string;
+  timeSec: number;
+  joints?: Record<string, { x: number; y: number; confidence: number }>;
+};
+
+let poseLandmarkerInstance: any = null;
+const getPoseLandmarker = async () => {
+  if (poseLandmarkerInstance) return poseLandmarkerInstance;
+  const visionModule = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs" as any);
+  const vision = await visionModule.FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+  );
+  poseLandmarkerInstance = await visionModule.PoseLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+      delegate: "GPU"
+    },
+    runningMode: "IMAGE"
+  });
+  return poseLandmarkerInstance;
+};
+
+const mapMediaPipeToKinetIQ = (landmarks: any[]) => {
+  if (!landmarks || landmarks.length === 0) return undefined;
+  const getConf = (lm: any) => lm.visibility !== undefined ? lm.visibility : (lm.presence || 1.0);
+  
+  const neck = {
+    x: (landmarks[11].x + landmarks[12].x) / 2,
+    y: (landmarks[11].y + landmarks[12].y) / 2,
+    confidence: (getConf(landmarks[11]) + getConf(landmarks[12])) / 2,
+  };
+  
+  return {
+    head: { x: landmarks[0].x, y: landmarks[0].y, confidence: getConf(landmarks[0]) },
+    neck: { x: neck.x, y: neck.y, confidence: neck.confidence },
+    leftShoulder: { x: landmarks[11].x, y: landmarks[11].y, confidence: getConf(landmarks[11]) },
+    rightShoulder: { x: landmarks[12].x, y: landmarks[12].y, confidence: getConf(landmarks[12]) },
+    leftElbow: { x: landmarks[13].x, y: landmarks[13].y, confidence: getConf(landmarks[13]) },
+    rightElbow: { x: landmarks[14].x, y: landmarks[14].y, confidence: getConf(landmarks[14]) },
+    leftWrist: { x: landmarks[15].x, y: landmarks[15].y, confidence: getConf(landmarks[15]) },
+    rightWrist: { x: landmarks[16].x, y: landmarks[16].y, confidence: getConf(landmarks[16]) },
+    leftHip: { x: landmarks[23].x, y: landmarks[23].y, confidence: getConf(landmarks[23]) },
+    rightHip: { x: landmarks[24].x, y: landmarks[24].y, confidence: getConf(landmarks[24]) },
+    leftKnee: { x: landmarks[25].x, y: landmarks[25].y, confidence: getConf(landmarks[25]) },
+    rightKnee: { x: landmarks[26].x, y: landmarks[26].y, confidence: getConf(landmarks[26]) },
+    leftAnkle: { x: landmarks[27].x, y: landmarks[27].y, confidence: getConf(landmarks[27]) },
+    rightAnkle: { x: landmarks[28].x, y: landmarks[28].y, confidence: getConf(landmarks[28]) },
+  };
+};
 
 function Index() {
   const analyze = useServerFn(analyzePose);
@@ -86,6 +152,7 @@ function Index() {
   const [duration, setDuration] = useState<number>(0);
   const [sport, setSport] = useState(SPORTS[0]);
   const [notes, setNotes] = useState("");
+  const [selectedModel, setSelectedModel] = useState<string>("ensemble");
   const [granularity, setGranularity] = useState<Granularity>("medium");
   const [frames, setFrames] = useState<ExtractedFrame[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -93,9 +160,41 @@ function Index() {
 
   const [history, setHistory] = useState<SavedAnalysis[]>([]);
   const [compareWith, setCompareWith] = useState<SavedAnalysis | null>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     setHistory(loadHistory());
+
+    // Fetch user profile if logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data) setProfile(data);
+          });
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        if (data) setProfile(data);
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const mutation = useMutation({
@@ -104,6 +203,9 @@ function Index() {
       notes: string;
       durationSec: number;
       frames: ExtractedFrame[];
+      profile?: any;
+      pastAnalyses?: any[];
+      model?: string;
     }) => (await analyze({ data: payload })) as AnalysisResult,
     onSuccess: async (data) => {
       setResult(data);
@@ -176,6 +278,13 @@ function Index() {
       canvas.height = h;
       const ctx = canvas.getContext("2d")!;
 
+      let landmarker: any = null;
+      try {
+        landmarker = await getPoseLandmarker();
+      } catch (err) {
+        console.warn("Failed to initialize MediaPipe Pose. Falling back to pure vision.", err);
+      }
+
       const captured: ExtractedFrame[] = [];
       for (const t of timestamps) {
         await new Promise<void>((resolve) => {
@@ -188,10 +297,27 @@ function Index() {
           setTimeout(() => resolve(), 5000);
         });
         ctx.drawImage(video, 0, 0, w, h);
-        captured.push({ dataUrl: canvas.toDataURL("image/jpeg", 0.7), timeSec: t });
+
+        let joints: Record<string, { x: number; y: number; confidence: number }> | undefined = undefined;
+        if (landmarker) {
+          try {
+            const result = landmarker.detect(canvas);
+            if (result && result.landmarks && result.landmarks.length > 0) {
+              joints = mapMediaPipeToKinetIQ(result.landmarks[0]);
+            }
+          } catch (poseErr) {
+            console.error("MediaPipe Pose detection failed for frame at time", t, poseErr);
+          }
+        }
+
+        captured.push({
+          dataUrl: canvas.toDataURL("image/jpeg", 0.7),
+          timeSec: t,
+          joints,
+        });
       }
       setFrames(captured);
-      toast.success(`Extracted ${captured.length} keyframes`);
+      toast.success(`Extracted ${captured.length} keyframes (Precision skeletal tracking complete)`);
       return captured;
     } catch (e) {
       console.error(e);
@@ -213,7 +339,26 @@ function Index() {
       toast.error("Extract keyframes first");
       return;
     }
-    mutation.mutate({ sport, notes, durationSec: dur || 1, frames: f });
+
+    const pastAnalyses = history.slice(0, 5).map((h) => ({
+      createdAt: h.createdAt,
+      sport: h.sport,
+      overallRiskLevel: h.result.overallRiskLevel,
+      overallRiskPercent: h.result.overallRiskPercent,
+      postureScore: h.result.postureScore,
+      performanceScore: h.result.performanceScore,
+      movementSummary: h.result.movementSummary,
+    }));
+
+    mutation.mutate({
+      sport,
+      notes,
+      durationSec: dur || 1,
+      frames: f,
+      profile: profile || undefined,
+      pastAnalyses: pastAnalyses.length > 0 ? pastAnalyses : undefined,
+      model: selectedModel,
+    });
   };
 
   const seekTo = useCallback((time: number) => {
@@ -225,24 +370,29 @@ function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-on-surface selection:bg-primary/30 relative overflow-hidden">
+      {/* Ambient background glows */}
+      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 -right-24 w-64 h-64 bg-tertiary/5 rounded-full blur-[100px] pointer-events-none" />
+
       <Toaster theme="dark" richColors position="top-right" />
       <Header />
-      <main className="mx-auto max-w-6xl px-4 pb-24">
+      <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 relative z-10">
         <Hero />
 
         <section className="mt-10 grid gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-3 rounded-2xl border border-border bg-card p-5">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Upload className="w-5 h-5 text-primary" /> 1. Upload your clip
+          <div className="lg:col-span-3 rounded-2xl glass-card p-6 shadow-lg hover:border-primary/20 transition-all duration-300">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+              Upload your clip
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">MP4, MOV, AVI, or WebM. 5–30 seconds works best.</p>
+            <p className="text-sm text-on-surface-variant mt-1">MP4, MOV, AVI, or WebM up to 80MB.</p>
 
             <label
               htmlFor="video-input"
               className={cn(
-                "mt-4 flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-background/50 px-6 py-10 text-center cursor-pointer transition hover:border-primary/60 hover:bg-background",
-                file && "border-primary/40",
+                "mt-6 flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low/30 hover:bg-primary/5 hover:border-primary/50 px-6 py-12 text-center cursor-pointer transition-all duration-300",
+                file && "border-primary/40 bg-primary/5",
               )}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
@@ -250,11 +400,13 @@ function Index() {
                 onPickFile(e.dataTransfer.files?.[0] ?? null);
               }}
             >
-              <FileVideo className="w-10 h-10 text-primary" />
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-1">
+                <FileVideo className="w-7 h-7 text-primary" />
+              </div>
               <div>
-                <p className="font-medium">{file ? file.name : "Drop a video here, or click to choose"}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : "Max 80 MB"}
+                <p className="font-semibold text-on-surface">{file ? file.name : "Drag & drop video file, or browse"}</p>
+                <p className="text-xs text-on-surface-variant mt-1">
+                  {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : "MP4, MOV, or AVI"}
                 </p>
               </div>
               <input
@@ -267,7 +419,7 @@ function Index() {
             </label>
 
             {videoUrl && (
-              <div className="mt-4 rounded-xl overflow-hidden border border-border bg-black">
+              <div className="mt-6 rounded-xl overflow-hidden border border-primary/15 bg-black/40 shadow-inner">
                 <video
                   ref={videoRef}
                   src={videoUrl}
@@ -295,7 +447,43 @@ function Index() {
                       title={`Seek to ${f.timeSec.toFixed(2)}s`}
                     >
                       <img src={f.dataUrl} alt={`frame ${i}`} className="w-full h-auto block" />
-                      <span className="absolute bottom-1 left-1 text-[10px] font-mono px-1 rounded bg-black/70 text-white">
+                      {f.joints && (
+                        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1 1" preserveAspectRatio="none">
+                          {/* Draw connections */}
+                          {SKELETON_CONNECTIONS.map(([p1, p2], idx) => {
+                            const pt1 = f.joints?.[p1];
+                            const pt2 = f.joints?.[p2];
+                            if (!pt1 || !pt2 || pt1.confidence < 0.2 || pt2.confidence < 0.2) return null;
+                            return (
+                              <line
+                                key={idx}
+                                x1={pt1.x}
+                                y1={pt1.y}
+                                x2={pt2.x}
+                                y2={pt2.y}
+                                stroke="rgba(14, 165, 233, 0.85)"
+                                strokeWidth="0.015"
+                              />
+                            );
+                          })}
+                          {/* Draw joints */}
+                          {Object.entries(f.joints).map(([name, pt]) => {
+                            if (pt.confidence < 0.2) return null;
+                            return (
+                              <circle
+                                key={name}
+                                cx={pt.x}
+                                cy={pt.y}
+                                r="0.02"
+                                fill="#0ea5e9"
+                                stroke="white"
+                                strokeWidth="0.004"
+                              />
+                            );
+                          })}
+                        </svg>
+                      )}
+                      <span className="absolute bottom-1 left-1 text-[10px] font-mono px-1 rounded bg-black/70 text-white z-10">
                         {f.timeSec.toFixed(1)}s
                       </span>
                     </button>
@@ -305,76 +493,102 @@ function Index() {
             )}
           </div>
 
-          <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-5">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" /> 2. Settings & analyze
+          <div className="lg:col-span-2 rounded-2xl glass-card p-6 shadow-lg hover:border-primary/20 transition-all duration-300">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+              Settings & analyze
             </h2>
 
-            <label className="block mt-4 text-sm font-medium">Sport / Movement</label>
+            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">Sport / Movement Type</label>
             <select
               value={sport}
               onChange={(e) => setSport(e.target.value)}
-              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:border-primary/60 transition-colors text-on-surface text-sm appearance-none"
             >
               {SPORTS.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
 
-            <label className="block mt-4 text-sm font-medium">Analysis granularity</label>
-            <div className="mt-1 grid grid-cols-3 gap-2">
+            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">AI Analysis Model</label>
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:border-primary/60 transition-colors text-on-surface text-sm appearance-none"
+            >
+              <option value="ensemble">Multi-Model Ensemble (Consensus)</option>
+              <option value="gemini-3.5-flash">Gemini 3.5 Flash (Fastest / Low cost)</option>
+              <option value="gemini-3.5-pro">Gemini 3.5 Pro (Deep reasoning)</option>
+              <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fastest / Advanced)</option>
+              <option value="gemini-3.6-pro">Gemini 3.6 Pro (Ultra Deep reasoning)</option>
+              <option value="llama3.2-vision">Llama 3.2 Vision (Ollama Cloud)</option>
+            </select>
+
+            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">Analysis granularity</label>
+            <div className="grid grid-cols-3 gap-2">
               {(Object.keys(GRANULARITY) as Granularity[]).map((g) => (
                 <button
                   key={g}
                   onClick={() => { setGranularity(g); setFrames([]); }}
                   className={cn(
-                    "rounded-md border px-2 py-2 text-left transition",
+                    "rounded-lg border px-2 py-3 text-left transition-all duration-200 flex flex-col justify-between min-h-[68px]",
                     granularity === g
-                      ? "border-primary bg-primary/10"
-                      : "border-border bg-background hover:bg-secondary",
+                      ? "border-primary bg-primary/10 text-primary shadow-[0_0_15px_rgba(125,211,252,0.1)]"
+                      : "border-outline-variant bg-surface-container/50 hover:border-primary/40 text-on-surface-variant",
                   )}
                 >
-                  <p className="text-sm font-semibold">{GRANULARITY[g].label}</p>
-                  <p className="text-[10px] text-muted-foreground font-mono">{GRANULARITY[g].sub}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider">{GRANULARITY[g].label}</p>
+                  <p className="text-[9px] font-mono opacity-80 mt-1">{GRANULARITY[g].sub}</p>
                 </button>
               ))}
             </div>
 
-            <label className="block mt-4 text-sm font-medium">Coach notes (optional)</label>
+            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">Coach notes (optional)</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              placeholder="e.g. recurring right-knee pain after sprints"
-              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              rows={3}
+              placeholder="e.g. Focus on knee valgus during landing phase..."
+              className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:border-primary/60 transition-colors text-on-surface placeholder:text-on-surface-variant/40 text-sm resize-none"
             />
 
-            <div className="mt-4 flex flex-col gap-2">
+            <div className="mt-6 flex flex-col gap-2">
               <button
                 disabled={!file || extracting}
                 onClick={() => extractFrames()}
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-outline bg-surface-container-highest px-4 py-2.5 text-sm font-medium hover:border-primary/40 hover:text-primary transition-all duration-200 disabled:opacity-50 disabled:hover:text-inherit"
               >
                 {extracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
                 Extract {GRANULARITY[granularity].count} keyframes
               </button>
-              <button
-                disabled={!file || mutation.isPending || extracting}
-                onClick={onAnalyze}
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 glow-primary"
-              >
-                {mutation.isPending ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing with AI…</>
-                ) : (
-                  <><Sparkles className="w-4 h-4" /> Run AI analysis</>
-                )}
-              </button>
-              <p className="text-xs text-muted-foreground text-center">
-                Powered by KinetIQ Biomechanics AI
-              </p>
             </div>
           </div>
         </section>
+
+        {/* Center CTA Button */}
+        <div className="mt-12 flex flex-col items-center">
+          <button
+            disabled={!file || mutation.isPending || extracting}
+            onClick={onAnalyze}
+            className="group relative px-12 py-5 rounded-full bg-primary text-on-primary font-headline font-bold text-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(125,211,252,0.3)] overflow-hidden disabled:opacity-50 disabled:hover:scale-100"
+          >
+            <span className="relative z-10 flex items-center gap-3">
+              {mutation.isPending ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Analyzing with AI…</>
+              ) : (
+                <>
+                  Run AI analysis
+                  <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">→</span>
+                </>
+              )}
+            </span>
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+          </button>
+          <p className="mt-6 text-on-surface-variant text-sm flex items-center gap-2">
+            <span className="text-primary text-xs">ℹ</span>
+            Analysis typically takes 15-30 seconds depending on granularity.
+          </p>
+        </div>
 
         <HistoryPanel
           history={history}
@@ -399,6 +613,8 @@ function Index() {
             frames={frames}
             onSeek={seekTo}
             compareWith={compareWith}
+            profile={profile}
+            hasHistory={history.length > 0}
           />
         )}
         {!result && !mutation.isPending && <HowItWorks />}
@@ -416,29 +632,33 @@ function Header() {
     return () => sub.subscription.unsubscribe();
   }, []);
   return (
-    <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-30">
-      <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-            <Activity className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="font-display text-lg font-bold tracking-tight">KinetIQ</span>
-          <span className="ml-2 text-[10px] uppercase tracking-widest text-primary font-mono">AI Coach</span>
+    <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-xl border-b border-primary/10 shadow-[0_0_30px_rgba(125,211,252,0.05)]">
+      <nav className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+        <RouterLink to="/" className="text-2xl font-headline font-semibold tracking-tight text-on-surface flex items-center gap-2">
+          <Activity className="h-6 w-6 text-primary" />
+          <span>KinetIQ</span>
+        </RouterLink>
+        <div className="hidden md:flex items-center gap-8 font-body text-sm font-medium">
+          <a className="text-on-surface-variant hover:text-on-surface transition-all duration-300" href="#how">How It Works</a>
+          <RouterLink className="text-primary border-b-2 border-primary pb-1" to="/">Analysis</RouterLink>
         </div>
-        <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-          <a href="#how" className="hidden sm:inline hover:text-foreground">How it works</a>
+        <div className="flex items-center gap-4">
           {email ? (
-            <RouterLink to="/profile" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary">
+            <RouterLink to="/profile" className="px-5 py-2 rounded-lg bg-primary/20 border border-primary/30 text-primary font-medium hover:bg-primary/30 transition-all duration-300 active:scale-95 text-sm">
               <span className="max-w-[140px] truncate">{email}</span>
-              <span className="text-primary">Profile →</span>
             </RouterLink>
           ) : (
-            <RouterLink to="/auth" className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">
-              Sign in
-            </RouterLink>
+            <>
+              <RouterLink to="/auth" className="px-5 py-2 rounded-lg font-medium text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all duration-300 active:scale-95 text-sm">
+                Login
+              </RouterLink>
+              <RouterLink to="/auth" className="px-5 py-2 rounded-lg bg-primary/20 border border-primary/30 text-primary font-medium hover:bg-primary/30 transition-all duration-300 active:scale-95 text-sm">
+                Get Started
+              </RouterLink>
+            </>
           )}
-        </nav>
-      </div>
+        </div>
+      </nav>
     </header>
   );
 }
@@ -447,16 +667,15 @@ function Hero() {
   return (
     <section className="relative pt-12 sm:pt-16 pb-2 text-center">
       <div className="absolute inset-0 -z-10 grid-bg opacity-30 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
-      <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground font-mono">
-        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-        Frame-level pose, heatmaps & risky-moment timeline
+      <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold mb-6 animate-pulse">
+        <span className="w-2 h-2 rounded-full bg-primary" />
+        AI PREDICTIVE KINEMATICS ACTIVE
       </div>
-      <h1 className="mt-5 text-4xl sm:text-6xl font-bold tracking-tight text-balance">
-        See the injury <span className="text-primary">before</span> it happens.
+      <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-balance">
+        See the injury <span className="text-primary italic text-glow">before</span> it happens.
       </h1>
       <p className="mt-4 mx-auto max-w-2xl text-muted-foreground text-balance">
-        Upload a sports clip. KinetIQ extracts keyframes, scores joint stress, flags risky moments
-        on a clickable timeline, and compares against your previous attempts.
+        Upload your performance clips and let KinetIQ’s proprietary AI extract joint angles, torque loads, and fatigue markers in seconds. Transform video into clinical-grade biomechanical data.
       </p>
     </section>
   );
@@ -464,9 +683,9 @@ function Hero() {
 
 function AnalyzingSkeleton() {
   return (
-    <section className="mt-10 rounded-2xl border border-border bg-card p-10 text-center">
+    <section className="mt-10 rounded-2xl border border-primary/20 bg-primary/5 p-10 text-center backdrop-blur-md">
       <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
-      <p className="mt-4 font-medium">AI coach is reviewing your clip…</p>
+      <p className="mt-4 font-medium text-primary">AI coach is reviewing your clip…</p>
       <p className="text-sm text-muted-foreground mt-1">Estimating joint angles, stress, and risky moments.</p>
     </section>
   );
@@ -474,19 +693,19 @@ function AnalyzingSkeleton() {
 
 function HowItWorks() {
   const steps = [
-    { i: "01", t: "Upload", d: "MP4, MOV, AVI, WebM up to 80MB.", Icon: Upload },
-    { i: "02", t: "Choose granularity", d: "6, 10, or 16 keyframes per clip.", Icon: Play },
-    { i: "03", t: "AI vision analysis", d: "Joint stress heatmap + risky moment timeline.", Icon: Sparkles },
-    { i: "04", t: "Compare & export", d: "Side-by-side vs past clips. PDF report.", Icon: GitCompareArrows },
+    { i: "1", t: "Upload your clip", d: "Drag & drop video file. MP4, MOV, or AVI works best.", Icon: Upload },
+    { i: "2", t: "Settings & analyze", d: "Choose movement type, granularity, and notes.", Icon: Play },
+    { i: "3", t: "AI Vision analysis", d: "Extract joint angles, torque load, and risk factors.", Icon: Sparkles },
+    { i: "4", t: "Compare & export", d: "Compare with previous runs or download PDF.", Icon: GitCompareArrows },
   ];
   return (
     <section id="how" className="mt-16">
-      <h2 className="text-2xl font-bold">How it works</h2>
+      <h2 className="text-2xl font-bold mb-6">How it works</h2>
       <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {steps.map((s) => (
-          <div key={s.i} className="rounded-2xl border border-border bg-card p-5">
+          <div key={s.i} className="rounded-2xl border border-primary/10 bg-surface/40 backdrop-blur-md p-5 transition hover:border-primary/30">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-primary">{s.i}</span>
+              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">{s.i}</span>
               <s.Icon className="w-4 h-4 text-muted-foreground" />
             </div>
             <p className="mt-4 font-semibold">{s.t}</p>
@@ -885,6 +1104,8 @@ function Report({
   frames,
   onSeek,
   compareWith,
+  profile,
+  hasHistory,
 }: {
   result: AnalysisResult;
   sport: string;
@@ -893,6 +1114,8 @@ function Report({
   frames: ExtractedFrame[];
   onSeek: (t: number) => void;
   compareWith: SavedAnalysis | null;
+  profile?: any;
+  hasHistory?: boolean;
 }) {
   const radarData = useMemo(
     () => [
@@ -981,7 +1204,19 @@ function Report({
     <section id="report" className="mt-12 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <p className="text-xs uppercase font-mono tracking-widest text-primary">Analysis report</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs uppercase font-mono tracking-widest text-primary">Analysis report</p>
+            {profile && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30 animate-pulse">
+                <Sparkles className="w-3.5 h-3.5" /> Personalized Profile Active
+              </span>
+            )}
+            {hasHistory && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-accent/20 text-accent border border-accent/30">
+                <History className="w-3.5 h-3.5" /> History-Aware Comparison Active
+              </span>
+            )}
+          </div>
           <h2 className="text-3xl font-bold mt-1">{result.sportDetected}</h2>
           <p className="text-muted-foreground mt-1 max-w-2xl">{result.movementSummary}</p>
         </div>
@@ -1174,10 +1409,20 @@ function ScoreCard({
 
 function Footer() {
   return (
-    <footer className="border-t border-border mt-16">
-      <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-muted-foreground flex justify-between">
-        <span>© KinetIQ · AI sports analysis</span>
-        <span className="font-mono">Not medical advice</span>
+    <footer className="w-full py-12 bg-surface-container-lowest border-t border-primary/5 mt-20 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex flex-col gap-2">
+          <div className="text-xl font-headline font-bold text-on-surface flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            KinetIQ
+          </div>
+          <p className="font-body text-xs text-on-surface-variant">© 2026 KinetIQ AI Coach. Precision in motion.</p>
+        </div>
+        <div className="flex gap-8 text-xs text-on-surface-variant">
+          <a className="hover:text-primary transition-colors duration-200" href="#">Privacy Policy</a>
+          <a className="hover:text-primary transition-colors duration-200" href="#">Terms of Service</a>
+          <span className="font-mono opacity-60">Not medical advice</span>
+        </div>
       </div>
     </footer>
   );

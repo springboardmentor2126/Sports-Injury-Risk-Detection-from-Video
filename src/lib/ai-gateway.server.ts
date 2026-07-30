@@ -1,9 +1,7 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 export function createAiGatewayProvider(apiKey: string) {
-  return createOpenAICompatible({
-    name: "gemini",
-    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+  return createGoogleGenerativeAI({
     apiKey: apiKey,
   });
 }
