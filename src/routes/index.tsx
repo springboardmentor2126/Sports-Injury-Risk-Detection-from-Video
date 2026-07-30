@@ -278,6 +278,14 @@ function Index() {
       canvas.height = h;
       const ctx = canvas.getContext("2d")!;
 
+      // Small canvas for high-performance MediaPipe skeleton tracking
+      const smallW = 256;
+      const smallH = Math.round(smallW * ratio);
+      const smallCanvas = document.createElement("canvas");
+      smallCanvas.width = smallW;
+      smallCanvas.height = smallH;
+      const smallCtx = smallCanvas.getContext("2d")!;
+
       let landmarker: any = null;
       try {
         landmarker = await getPoseLandmarker();
@@ -288,20 +296,27 @@ function Index() {
       const captured: ExtractedFrame[] = [];
       for (const t of timestamps) {
         await new Promise<void>((resolve) => {
+          let timeoutId: any;
           const onSeeked = () => {
             video.removeEventListener("seeked", onSeeked);
+            clearTimeout(timeoutId);
             resolve();
           };
           video.addEventListener("seeked", onSeeked);
           video.currentTime = t;
-          setTimeout(() => resolve(), 5000);
+          timeoutId = setTimeout(() => {
+            video.removeEventListener("seeked", onSeeked);
+            resolve();
+          }, 800);
         });
+        
         ctx.drawImage(video, 0, 0, w, h);
 
         let joints: Record<string, { x: number; y: number; confidence: number }> | undefined = undefined;
         if (landmarker) {
           try {
-            const result = landmarker.detect(canvas);
+            smallCtx.drawImage(video, 0, 0, smallW, smallH);
+            const result = landmarker.detect(smallCanvas);
             if (result && result.landmarks && result.landmarks.length > 0) {
               joints = mapMediaPipeToKinetIQ(result.landmarks[0]);
             }
