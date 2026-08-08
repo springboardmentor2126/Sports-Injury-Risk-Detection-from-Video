@@ -317,137 +317,190 @@ Sports-Injury-Risk-Detection-from-Video
 ├── .gitignore
 ├── LICENSE
 └── README.md
-🚀 How to Run
-1. Clone the Repository
+```
+
+---
+
+# 🚀 How to Run
+
+## 1. Clone the Repository
+
+```bash
 git clone https://github.com/springboardmentor2126/Sports-Injury-Risk-Detection-from-Video.git
 cd Sports-Injury-Risk-Detection-from-Video
-2. Backend Setup
+```
+
+---
+
+## 2. Backend Setup
+
 Open a terminal and navigate to the backend:
 
+```bash
 cd backend
+```
 
 Create a Python 3.11 virtual environment:
+
+```bash
 py -3.11 -m venv venv311
+```
+
 Activate the environment on Windows:
 
+```bash
 venv311\Scripts\activate
+```
 
 Install the backend dependencies:
 
+```bash
 pip install -r requirements.txt
+```
 
-Create a local .env file inside the backend folder and configure the required database, authentication, and email environment variables.
+Create a local `.env` file inside the `backend` folder and configure the required database, authentication, and email environment variables.
 
 Start the FastAPI backend:
 
+```bash
 uvicorn main:app --reload
+```
 
-Backend:
+Backend runs at:
 
-http://127.0.0.1:8000
+`http://127.0.0.1:8000`
 
 FastAPI API Documentation:
 
-http://127.0.0.1:8000/docs
-3. Frontend Setup
+`http://127.0.0.1:8000/docs`
+
+---
+
+## 3. Frontend Setup
 
 Open a second terminal and navigate to the frontend:
 
+```bash
 cd frontend
+```
 
 Install frontend dependencies:
 
+```bash
 npm install
+```
 
 Start the React application:
 
+```bash
 npm start
+```
 
-Frontend:
+Frontend runs at:
 
-http://localhost:3000
-📊 Current Progress
-| Module                         | Status      |
-| ------------------------------ | ----------- |
-| Project Initialization         | ✅ Completed |
-| Authentication                 | ✅ Completed |
-| Athlete Profile Management     | ✅ Completed |
-| Video Upload System            | ✅ Completed |
-| Pose Estimation                | ✅ Completed |
-| Skeleton Tracking              | ✅ Completed |
-| Biomechanics Analysis          | ✅ Completed |
-| Injury Risk Prediction         | ✅ Completed |
-| Processed Video Generation     | ✅ Completed |
-| PDF Report Generation          | ✅ Completed |
-| Results Dashboard              | ✅ Completed |
-| Admin Dashboard                | ✅ Completed |
-| Athlete Analytics              | ✅ Completed |
+`http://localhost:3000`
+
+---
+
+# 📊 Current Progress
+
+| Module | Status |
+|---|---|
+| Project Initialization | ✅ Completed |
+| Authentication | ✅ Completed |
+| Athlete Profile Management | ✅ Completed |
+| Video Upload System | ✅ Completed |
+| Pose Estimation | ✅ Completed |
+| Skeleton Tracking | ✅ Completed |
+| Biomechanics Analysis | ✅ Completed |
+| Injury Risk Prediction | ✅ Completed |
+| Processed Video Generation | ✅ Completed |
+| PDF Report Generation | ✅ Completed |
+| Results Dashboard | ✅ Completed |
+| Admin Dashboard | ✅ Completed |
+| Athlete Analytics | ✅ Completed |
 | Risk Analytics & Visualization | ✅ Completed |
-| Access Request Management      | ✅ Completed |
-| User Invitation System         | ✅ Completed |
-| Forgot Password                | ✅ Completed |
-| Email Password Reset           | ✅ Completed |
-| Asynchronous Video Processing  | ✅ Completed |
-| Movement Anomaly Detection     | ✅ Completed |
-| Dashboard Analytics Services   | ✅ Completed |
+| Access Request Management | ✅ Completed |
+| User Invitation System | ✅ Completed |
+| Forgot Password | ✅ Completed |
+| Email Password Reset | ✅ Completed |
+| Asynchronous Video Processing | ✅ Completed |
+| Movement Anomaly Detection | ✅ Completed |
+| Dashboard Analytics Services | ✅ Completed |
 
-📈 Milestone 3 Highlights
+---
+
+# 📈 Milestone 3 Highlights
 
 Milestone 3 focuses on transforming the application into a more complete sports injury analytics platform by introducing:
 
-Centralized administrator monitoring
-Athlete statistics and graphical analytics
-Sports-wise athlete visualization
-Risk-level visualization
-Improved authentication and password recovery
-Email-based password reset
-Access request management
-Invitation management
-Asynchronous video processing
-Movement anomaly detection
-Enhanced analysis services
-Improved dashboard and results experience
-Expanded database support
+- Centralized administrator monitoring
+- Athlete statistics and graphical analytics
+- Sports-wise athlete visualization
+- Risk-level visualization
+- Improved authentication and password recovery
+- Email-based password reset
+- Access request management
+- Invitation management
+- Asynchronous video processing
+- Movement anomaly detection
+- Enhanced analysis services
+- Improved dashboard and results experience
+- Expanded database support
 
-🔐 Security
+---
+
+# 🔐 Security
+
 Sensitive configuration values are stored locally in environment variables and are not committed to the repository.
-The project .gitignore excludes:
-.env files
-Python virtual environments
-node_modules
-Uploaded videos
-Processed videos
-Generated reports
-Python cache files
 
-🚀 Future Enhancements
-Real-time pose estimation
-Deep learning injury prediction models
-AI-powered recommendation system
-Performance analytics dashboard
-Coach dashboard
-Physiotherapist dashboard
-Sports scientist dashboard
-Multi-athlete comparison
-Cloud deployment
-Advanced biomechanics analytics
+The project `.gitignore` excludes:
 
-👩‍💻 Developed By
+- `.env` files
+- Python virtual environments
+- `node_modules`
+- Uploaded videos
+- Processed videos
+- Generated reports
+- Python cache files
 
-Veera Naga Durga Garlanka
+---
 
-B.Tech – Computer Science and Engineering (AI & ML)
-⭐ Project Status
-✅ Milestone 3 – Completed
+# 🚀 Future Enhancements
 
-The project currently includes the implementation of Milestones 1, 2, and 3 of the Sports Injury Risk Detection from Video platform.
+- Real-time pose estimation
+- Deep learning injury prediction models
+- AI-powered recommendation system
+- Performance analytics dashboard
+- Coach dashboard
+- Physiotherapist dashboard
+- Sports scientist dashboard
+- Multi-athlete comparison
+- Cloud deployment
+- Advanced biomechanics analytics
+
+---
+
+# 👩‍💻 Developed By
+
+**Veera Naga Durga Garlanka**
+
+**B.Tech – Computer Science and Engineering (AI & ML)**
+
+**CMR College of Engineering & Technology**
+
+---
+
+# ⭐ Project Status
+
+## ✅ Milestone 3 – Completed
+
+The project currently includes the implementation of **Milestones 1, 2, and 3** of the **Sports Injury Risk Detection from Video** platform.
 
 The application provides athlete authentication, athlete profile management, sports video upload and processing, AI-based pose estimation, skeleton tracking, biomechanics analysis, injury risk prediction, downloadable injury reports, administrator analytics, access management, password recovery, email services, and asynchronous video processing.
 
-📄 License
+---
 
-This project was developed as part of the Infosys Springboard Internship Program for educational and research purposes.
+## 📄 License
 
-CMR College of Engineering & Technology
-
-Copy the **entire code block from the first `# 🏃` to the final License line** and paste it into GitHub's README editor.
+This project was developed as part of the **Infosys Springboard Internship Program** for educational and research purposes.
