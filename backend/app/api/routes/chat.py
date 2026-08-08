@@ -54,7 +54,7 @@ def chat_dashboard_ai(
         high_risk_count = 0
         for a in athletes:
             # get their last session
-            last_session = db.query(VideoAnalysis).filter(VideoAnalysis.user_id == a.user_id).order_by(VideoAnalysis.created_at.desc()).first()
+            last_session = db.query(VideoAnalysis).filter(VideoAnalysis.user_id == str(a.user_id)).order_by(VideoAnalysis.created_at.desc()).first()
             if not last_session:
                 continue
             
@@ -81,7 +81,7 @@ def chat_dashboard_ai(
         }
     else:
         # Athlete view
-        sessions = db.query(VideoAnalysis).filter(VideoAnalysis.user_id == current_user.id).order_by(VideoAnalysis.created_at.desc()).all()
+        sessions = db.query(VideoAnalysis).filter(VideoAnalysis.user_id == str(current_user.id)).order_by(VideoAnalysis.created_at.desc()).all()
         profile = db.query(AthleteProfile).filter(AthleteProfile.user_id == current_user.id).first()
         
         avg_sym = 0

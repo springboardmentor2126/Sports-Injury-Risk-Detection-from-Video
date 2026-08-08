@@ -35,7 +35,8 @@ def _get_client() -> Optional[genai.Client]:
 def _call_gemini_with_retry(client, model: str, prompt: str, temperature: float, max_retries: int = 2) -> str:
     """
     Calls Gemini with automatic retry on 429 rate limit errors.
-    Raises exception if all retries are exhausted or an unrecoverable error occurs.
+    Used for BACKGROUND tasks (video AI recs) where waiting is acceptable.
+    Raises RuntimeError('RATE_LIMIT_EXHAUSTED') if all retries fail.
     """
     delay = 25  # seconds to wait between retries (free tier retry delay is ~20s)
     for attempt in range(max_retries + 1):
@@ -56,6 +57,26 @@ def _call_gemini_with_retry(client, model: str, prompt: str, temperature: float,
                 else:
                     raise RuntimeError("RATE_LIMIT_EXHAUSTED") from e
             raise  # re-raise non-rate-limit errors immediately
+
+
+def _call_gemini_fast(client, model: str, prompt: str, temperature: float) -> str:
+    """
+    Calls Gemini ONCE with NO retry — used for live chat endpoints.
+    Fails immediately on rate limit so the HTTP response stays fast (< 5s).
+    Raises RuntimeError('RATE_LIMIT_EXHAUSTED') if quota is hit.
+    """
+    try:
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=temperature),
+        )
+        return response.text.strip()
+    except Exception as e:
+        err_str = str(e)
+        if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+            raise RuntimeError("RATE_LIMIT_EXHAUSTED") from e
+        raise
 
 
 
@@ -203,7 +224,7 @@ You MUST respond ONLY with a valid JSON object matching this exact schema. Do no
 """
 
     try:
-        raw = _call_gemini_with_retry(client, "gemini-2.0-flash", prompt, temperature=0.4)
+        raw = _call_gemini_with_retry(client, "gemini-3.5-flash", prompt, temperature=0.4)
         # Strip markdown code fences if Gemini wraps the JSON
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -259,21 +280,22 @@ ATHLETE SESSION CONTEXT (use this as background knowledge — do NOT list it out
     full_prompt = f"{system_prompt}\n\n{context_block}\n\nUser Question: {user_message}"
 
     try:
-        return _call_gemini_with_retry(client, "gemini-2.0-flash", full_prompt, temperature=0.6)
+        return _call_gemini_fast(client, "gemini-3.5-flash", full_prompt, temperature=0.6)
     except RuntimeError as e:
         if "RATE_LIMIT_EXHAUSTED" in str(e):
             logger.warning("Gemini free-tier daily quota exhausted for chat.")
             return (
                 "⚠️ **Sporty is temporarily resting!**\n\n"
-                "The AI assistant has hit its free-tier daily limit (20 requests/day). "
+                "The AI assistant has hit its free-tier daily limit. "
                 "This resets automatically every 24 hours.\n\n"
-                "💡 *Tip: To remove this limit, upgrade to a paid Gemini API plan at ai.google.dev*"
+                "💡 *Tip: Add a new GEMINI_API_KEY in backend/.env to restore instantly.*"
             )
         logger.error(f"Gemini chat response failed: {e}")
         return "Sorry, I encountered an error generating a response. Please try again."
     except Exception as e:
         logger.error(f"Gemini chat response failed: {e}")
         return "Sorry, I encountered an error generating a response. Please try again."
+
 
 
 # ─── Function 3: Global Dashboard Chat Response (NOT saved to DB) ────────────
@@ -313,19 +335,20 @@ ATHLETE OVERVIEW CONTEXT (use this as background knowledge — do NOT list it ou
     full_prompt = f"{system_prompt}\n\n{context_block}\n\nUser Question: {user_message}"
 
     try:
-        return _call_gemini_with_retry(client, "gemini-2.0-flash", full_prompt, temperature=0.6)
+        return _call_gemini_fast(client, "gemini-3.5-flash", full_prompt, temperature=0.6)
     except RuntimeError as e:
         if "RATE_LIMIT_EXHAUSTED" in str(e):
             logger.warning("Gemini free-tier daily quota exhausted for dashboard chat.")
             return (
                 "⚠️ **Sporty is temporarily resting!**\n\n"
-                "The AI assistant has hit its free-tier daily limit (20 requests/day). "
+                "The AI assistant has hit its free-tier daily limit. "
                 "This resets automatically every 24 hours.\n\n"
-                "💡 *Tip: To remove this limit, upgrade to a paid Gemini API plan at ai.google.dev*"
+                "💡 *Tip: Add a new GEMINI_API_KEY in backend/.env to restore instantly.*"
             )
         logger.error(f"Gemini dashboard chat response failed: {e}")
         return "Sorry, I encountered an error generating a response. Please try again."
     except Exception as e:
         logger.error(f"Gemini dashboard chat response failed: {e}")
         return "Sorry, I encountered an error generating a response. Please try again."
+
 

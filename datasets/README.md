@@ -1,89 +1,146 @@
-# 📊 Datasets — AI Sports Injury Risk Detection
+# 📦 Datasets — Sports Injury Risk Detection
 
-This directory contains references, documentation, and links to all datasets used for training, testing, and evaluating the AI/ML models in this platform.
+This directory holds all biomechanics and pose estimation datasets used for training and evaluation.
+Dataset files are **gitignored** (too large for GitHub). Use the download links below to set them up locally.
 
-> ⚠️ **Note:** Raw dataset files are NOT stored in this repository due to size constraints. Use the links below to download them locally.
+---
 
-## 📁 Folder Structure (Planned)
+## 🗂️ Folder Structure
 
 ```
 datasets/
-├── references/             # Dataset documentation and links
-│   ├── human3.6m.md
-│   ├── mpii_pose.md
-│   ├── coco_keypoints.md
-│   ├── sportspose.md
-│   └── fifa_injury.md
-├── preprocessing/          # Data preprocessing scripts
-├── samples/                # Small sample files for testing
-└── README.md
+├── human3.6m/          ← Human pose estimation & joint tracking
+├── mpii/               ← Body keypoint detection & activity recognition
+├── coco_keypoints/     ← Pose estimation training & motion analysis
+├── sportspose/         ← Sports-specific movement & athlete posture
+├── fifa_injury/        ← Injury trend analysis & risk factors (reference)
+└── README.md           ← This file
 ```
 
-## 📦 Datasets Used
+---
 
-### 1. 🏃 Human3.6M Dataset
+## 📚 Dataset Details
+
+### 1. Human3.6M Dataset
 | Field | Info |
 |-------|------|
+| **Folder** | `datasets/human3.6m/` |
 | **Purpose** | Human pose estimation, joint tracking, movement analysis |
-| **Size** | ~3.6 million video frames |
+| **Size** | ~30 GB |
 | **Format** | Video + 3D joint annotations |
-| **Link** | [http://vision.imar.ro/human3.6m](http://vision.imar.ro/human3.6m) |
+| **Download** | [http://vision.imar.ro/human3.6m](http://vision.imar.ro/human3.6m) |
+| **Used In** | Milestone 2 — Pose Estimation Engine |
 
-### 2. 🤸 MPII Human Pose Dataset
+**What it contains:**
+- 3.6 million video frames of 11 professional actors
+- 17 different movement scenarios (walking, sitting, eating, etc.)
+- 3D joint position annotations for 32 body joints
+- Used to train pose estimation models from scratch or for fine-tuning
+
+---
+
+### 2. MPII Human Pose Dataset
 | Field | Info |
 |-------|------|
+| **Folder** | `datasets/mpii/` |
 | **Purpose** | Body keypoint detection, activity recognition |
-| **Size** | ~25,000 images, 40,000+ annotated people |
-| **Format** | Images + JSON keypoint annotations |
-| **Link** | [http://human-pose.mpi-inf.mpg.de](http://human-pose.mpi-inf.mpg.de) |
+| **Size** | ~12 GB |
+| **Format** | Images + JSON annotations |
+| **Download** | [http://human-pose.mpi-inf.mpg.de](http://human-pose.mpi-inf.mpg.de) |
+| **Used In** | Milestone 2 — Skeleton tracking |
 
-### 3. 🏋️ COCO Keypoints Dataset
+**What it contains:**
+- 25,000 images with 40,000+ annotated people
+- 16 body joint keypoints per person
+- 410 different human activity categories
+- Good for fine-tuning MediaPipe / MoveNet on sports activities
+
+---
+
+### 3. COCO Keypoints Dataset
 | Field | Info |
 |-------|------|
+| **Folder** | `datasets/coco_keypoints/` |
 | **Purpose** | Pose estimation training, human motion analysis |
-| **Size** | ~200,000+ images |
-| **Format** | Images + COCO JSON annotations |
-| **Link** | [https://cocodataset.org/#keypoints-2020](https://cocodataset.org/#keypoints-2020) |
+| **Size** | ~20 GB |
+| **Format** | Images + JSON annotations (COCO format) |
+| **Download** | [https://cocodataset.org/#keypoints-2017](https://cocodataset.org/#keypoints-2017) |
+| **Used In** | Milestone 2 — Multi-person pose detection |
 
-### 4. ⚽ SportsPose Dataset
+**What it contains:**
+- 200,000+ images with 250,000+ person instances
+- 17 keypoints per person (nose, shoulders, elbows, wrists, hips, knees, ankles)
+- Used as the base training set for most pose estimation models (YOLOv8-pose, MediaPipe)
+
+---
+
+### 4. SportsPose Dataset
 | Field | Info |
 |-------|------|
+| **Folder** | `datasets/sportspose/` |
 | **Purpose** | Sports-specific movement analysis, athlete posture assessment |
-| **Format** | Video clips + pose annotations |
-| **Link** | [https://github.com/ChristianIngwersen/SportsPose](https://github.com/ChristianIngwersen/SportsPose) |
+| **Size** | ~5 GB |
+| **Format** | Video + 3D pose annotations |
+| **Download** | [https://github.com/ChristianIngwersen/SportsPose](https://github.com/ChristianIngwersen/SportsPose) |
+| **Used In** | Milestone 2 & 3 — Sports-specific biomechanical analysis |
 
-### 5. 📋 FIFA Injury Dataset (Reference)
+**What it contains:**
+- Multi-view sports footage with 3D pose ground truth
+- Covers 8 sports disciplines
+- Most relevant dataset for this project — athletes in real sports scenarios
+- Includes jumping, running, throwing, and sport-specific movements
+
+---
+
+### 5. FIFA Injury Dataset *(Reference Only)*
 | Field | Info |
 |-------|------|
+| **Folder** | `datasets/fifa_injury/` |
 | **Purpose** | Injury trend analysis, risk factor modeling |
-| **Format** | Statistical injury reports |
-| **Usage** | Reference only — for model validation and benchmarking |
+| **Size** | Small (CSV/Excel) |
+| **Format** | Tabular data (CSV) |
+| **Download** | [https://www.kaggle.com/datasets/search?q=football+injury](https://www.kaggle.com/datasets/search?q=football+injury) |
+| **Used In** | Milestone 3 — Injury Risk Prediction Engine |
 
-## 🤖 How Datasets Are Used
+**What it contains:**
+- Historical football injury records
+- Injury type, body part, recovery time
+- Player position and training load data
+- Used to model injury risk factors alongside biomechanical data
 
-| Module | Dataset Used |
-|--------|-------------|
-| Pose Estimation | Human3.6M, MPII, COCO Keypoints, SportsPose |
-| Biomechanical Analysis | Human3.6M, SportsPose |
-| Injury Risk Prediction | FIFA Injury Dataset (reference), SportsPose |
-| Movement Anomaly Detection | Human3.6M, COCO Keypoints |
-| Model Evaluation | MPII, COCO Keypoints |
+---
 
-## 📥 Download Instructions
+## ⚙️ Setup Instructions (Milestone 2 onwards)
 
 ```bash
-# Example: Download COCO Keypoints
-wget http://images.cocodataset.org/zips/train2017.zip
-wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+# 1. Download datasets manually from the links above
 
-# Extract
-unzip train2017.zip -d datasets/coco/
-unzip annotations_trainval2017.zip -d datasets/coco/
+# 2. Place them in the correct subfolders:
+#    datasets/human3.6m/
+#    datasets/mpii/
+#    datasets/coco_keypoints/
+#    datasets/sportspose/
+#    datasets/fifa_injury/
+
+# 3. Verify structure
+ls datasets/
+
+# 4. Run preprocessing scripts (to be added in Milestone 2)
+# python datasets/preprocess/prepare_human36m.py
+# python datasets/preprocess/prepare_coco.py
 ```
 
-## 🔒 Data Privacy & Ethics
+> **Note:** All dataset folders are gitignored (`*.zip`, raw video/image files).
+> Only this README and preprocessing scripts are tracked in git.
 
-- All datasets used are **publicly available** research datasets
-- No personal athlete data is stored in this repository
-- Real athlete data uploaded via the platform is stored securely and is **never shared**
-- All data handling complies with **GDPR** and sports data privacy guidelines
+---
+
+## 📊 Dataset Usage by Milestone
+
+| Dataset | Milestone 1 | Milestone 2 | Milestone 3 | Milestone 4 |
+|---------|-------------|-------------|-------------|-------------|
+| Human3.6M | Documented ✅ | Training | Evaluation | — |
+| MPII | Documented ✅ | Training | Evaluation | — |
+| COCO Keypoints | Documented ✅ | Training | — | — |
+| SportsPose | Documented ✅ | Primary Use | Risk Analysis | Demo |
+| FIFA Injury | Documented ✅ | — | Primary Use | Reports |

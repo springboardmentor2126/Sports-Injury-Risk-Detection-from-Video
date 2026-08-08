@@ -1,3 +1,11 @@
+# ML Model files (large binaries — download separately)
+*.task
+*.tflite
+
+# Local test outputs
+backend/test_outputs/
+backend/uploads/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -67,9 +75,25 @@ coverage.xml
 # Alembic
 alembic/versions/*.pyc
 
-# Datasets (large files)
-datasets/raw/
-datasets/processed/
+# Datasets — ignore actual data files but keep folder structure
+datasets/**/*.zip
+datasets/**/*.tar
+datasets/**/*.tar.gz
+datasets/**/*.h5
+datasets/**/*.hdf5
+datasets/**/*.mp4
+datasets/**/*.avi
+datasets/**/*.mov
+datasets/**/*.jpg
+datasets/**/*.jpeg
+datasets/**/*.png
+datasets/**/*.csv
+datasets/**/*.json
+datasets/**/*.npz
+datasets/**/*.npy
+# Keep .gitkeep and README.md files in dataset folders
+!datasets/**/.gitkeep
+!datasets/**/README.md
 
 # Uploads
 backend/uploads/
