@@ -1,0 +1,46 @@
+.auth-page{
+    min-height:80vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#F8FAFC;
+}
+
+.form-card{
+    width:420px;
+    background:white;
+    padding:40px;
+    border-radius:20px;
+    box-shadow:0 12px 30px rgba(15,23,42,.08);
+}
+
+.form-card h2{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.form-group{
+    margin-bottom:20px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+}
+
+.form-control{
+    width:100%;
+    padding:14px;
+    border:1px solid #CBD5E1;
+    border-radius:12px;
+    font-size:15px;
+}
+
+.form-control:focus{
+    border-color:#2563EB;
+}
+
+.form-card .btn{
+    margin-top:10px;
+}

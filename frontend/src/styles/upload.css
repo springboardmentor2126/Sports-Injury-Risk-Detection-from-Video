@@ -1,0 +1,193 @@
+.upload-card {
+  width: 100%;
+  max-width: 600px;
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+  border: 1px solid #f1f5f9;
+}
+
+.athlete-select-group {
+  text-align: left;
+  margin-bottom: 25px;
+}
+
+.no-profiles-warning {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #991b1b;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.dropzone {
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropzone:hover, .dropzone.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.dropzone.has-file {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.upload-icon {
+  font-size: 48px;
+  color: #64748b;
+  margin-bottom: 12px;
+  transition: transform 0.3s;
+}
+
+.dropzone:hover .upload-icon {
+  transform: translateY(-4px);
+  color: #2563eb;
+}
+
+.dropzone.has-file .upload-icon {
+  color: #22c55e;
+}
+
+.upload-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.upload-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.file-info {
+  color: #1e293b;
+}
+
+.file-info p {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2563eb;
+  margin: 4px 0;
+  word-break: break-all;
+}
+
+.file-info span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.upload-btn {
+  background: #2563eb;
+  color: white;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.upload-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15);
+}
+
+/* Processing Loader State */
+.upload-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.spinner-icon {
+  font-size: 54px;
+  color: #2563eb;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  margin: 15px 0 25px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.stage-list {
+  list-style: none;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+}
+
+.stage-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid #f8fafc;
+  transition: all 0.3s;
+}
+
+.stage-list li.pending {
+  color: #94a3b8;
+}
+
+.stage-list li.active {
+  color: #2563eb;
+  font-weight: 600;
+  transform: scale(1.02);
+}
+
+.stage-list li.completed {
+  color: #1e293b;
+}
+
+.stage-bullet {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+}
+
+.stage-list li.active .stage-bullet {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.stage-check {
+  font-size: 18px;
+  color: #22c55e;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

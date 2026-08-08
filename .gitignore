@@ -1,0 +1,65 @@
+﻿# Python virtual environments
+venv/
+venv311/
+.venv/
+.venv copy/
+backend/venv311/
+backend/.venv/
+
+# Python cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+
+# Environment variables and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Node / React
+node_modules/
+**/node_modules/
+frontend/build/
+frontend/.eslintcache
+
+# Generated files
+uploads/
+processed_videos/
+reports/
+backend/uploads/
+backend/processed_videos/
+backend/reports/
+
+# Large video files
+*.mp4
+*.avi
+*.mov
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+*.zip
+
+# Misc
+tempCodeRunnerFile.py

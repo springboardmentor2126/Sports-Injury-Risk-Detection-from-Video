@@ -1,0 +1,178 @@
+.dashboard-title{
+
+font-size:42px;
+
+font-weight:800;
+
+margin-bottom:10px;
+
+}
+
+.dashboard-subtitle{
+
+color:#64748B;
+
+margin-bottom:40px;
+
+}
+
+.dashboard-grid{
+
+display:grid;
+
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+
+gap:25px;
+
+margin-bottom:40px;
+
+}
+
+.analytics-card{
+
+background:white;
+
+padding:35px;
+
+border-radius:20px;
+
+box-shadow:0 12px 30px rgba(15,23,42,.08);
+
+min-height:350px;
+
+}
+
+.analytics-card h2{
+
+margin-bottom:15px;
+
+}
+
+.profiles-table-wrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.profiles-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.profiles-table thead {
+  background-color: #f0f4f8;
+  font-weight: 600;
+  color: #334155;
+}
+
+.profiles-table th {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.profiles-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.profiles-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.btn-view {
+  background-color: #2563EB;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-right: 8px;
+  transition: background-color 0.3s;
+}
+
+.btn-view:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-delete {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.3s;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.modal-close:hover {
+  color: #1e293b;
+}
+
+.profile-details {
+  margin-top: 20px;
+}
+
+.profile-details p {
+  margin: 12px 0;
+  line-height: 1.6;
+}
+
+.details-text {
+  background-color: #f0f4f8;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #2563EB;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.analytics-card p{
+
+color:#64748B;
+
+line-height:1.8;
+
+}

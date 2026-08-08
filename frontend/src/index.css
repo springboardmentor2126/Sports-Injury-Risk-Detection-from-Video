@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    background:#F8FAFC;
+    color:#0F172A;
+    overflow-x:hidden;
+}
+
+a{
+    text-decoration:none;
+    color:inherit;
+}
+
+button{
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    border:none;
+}
+
+input,
+select,
+textarea{
+    font-family:'Inter',sans-serif;
+    outline:none;
+}
+
+img{
+    max-width:100%;
+    display:block;
+}
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-track{
+    background:#E2E8F0;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#2563EB;
+    border-radius:20px;
+}
+
+.container{
+    width:90%;
+    max-width:1300px;
+    margin:auto;
+}
+
+:root{
+
+    --primary:#2563EB;
+    --secondary:#3B82F6;
+
+    --success:#22C55E;
+    --warning:#F59E0B;
+    --danger:#EF4444;
+
+    --background:#F8FAFC;
+    --card:#FFFFFF;
+
+    --sidebar:#0F172A;
+
+    --text:#0F172A;
+    --text-light:#64748B;
+
+    --border:#E2E8F0;
+
+    --shadow:0 12px 30px rgba(15,23,42,.08);
+
+    --radius:18px;
+
+}

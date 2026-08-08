@@ -1,0 +1,17 @@
+fastapi==0.139.0
+uvicorn==0.31.0
+python-multipart==0.0.9
+pydantic==2.9.2
+opencv-python==4.10.0.82
+mediapipe==0.10.21
+numpy==1.26.4
+scipy==1.17.1
+reportlab==4.2.5
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-dotenv==1.0.1
+PyJWT==2.9.0
+google-auth==2.35.0
+requests==2.34.2

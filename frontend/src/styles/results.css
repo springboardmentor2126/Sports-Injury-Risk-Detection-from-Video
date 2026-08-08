@@ -1,0 +1,552 @@
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.btn-back {
+  display:inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.btn-back:hover {
+  color: #2563eb;
+}
+
+.btn-pdf {
+  background: #dc2626;
+  color: white !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-pdf:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.title-section {
+  margin-bottom: 35px;
+  text-align: left;
+}
+
+.title-section .title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.title-section .subtitle {
+  font-size: 15px;
+  color: #64748b;
+  margin-top: 5px;
+}
+
+/* Row 1 Layout */
+.dashboard-row-1 {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
+  margin-bottom: 35px;
+}
+
+@media (max-width: 900px) {
+  .dashboard-row-1 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.video-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f1f5f9;
+}
+
+.video-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.video-wrapper {
+  background: #0f172a;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 16/9;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+}
+
+.video-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.video-caption {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 12px;
+  text-align: left;
+}
+
+/* Overall Risk Card styling */
+.overall-risk-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.overall-risk-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 10px 0 5px;
+}
+
+.heart-icon {
+  font-size: 44px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.risk-badge {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.score-display {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.score-num {
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.gauge-container {
+  width: 100%;
+  margin-bottom: 25px;
+}
+
+.gauge-bg {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.gauge-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s ease-out;
+}
+
+.breakdown-section {
+  width: 100%;
+  text-align: left;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 20px;
+}
+
+.breakdown-section h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.factor-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.factor-row strong {
+  color: #1e293b;
+}
+
+/* Injury Profiles Grid */
+.injury-profiles-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f1f5f9;
+  margin-bottom: 35px;
+  text-align: left;
+}
+
+.injury-profiles-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+  margin-bottom: 25px;
+}
+
+.injury-profiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.injury-item-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.injury-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.injury-item-header strong {
+  font-size: 15px;
+  color: #1e293b;
+}
+
+.injury-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 10px;
+}
+
+.injury-progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.progress-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  min-width: 35px;
+}
+
+.injury-progress-bg {
+  flex-grow: 1;
+  height: 6px;
+  background: #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.injury-progress-fill {
+  height: 100%;
+  border-radius: 10px;
+}
+
+.injury-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  margin-top: auto;
+}
+
+.reason-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.reason-arrow {
+  color: #2563eb;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+/* Biomechanics grid Row 3 */
+.biomechanics-details-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
+  margin-bottom: 35px;
+}
+
+@media (max-width: 900px) {
+  .biomechanics-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rom-card, .symmetry-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f1f5f9;
+  text-align: left;
+}
+
+.card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.title-icon {
+  font-size: 20px;
+  color: #2563eb;
+}
+
+.card-title-group h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.rom-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.rom-table th, .rom-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.rom-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+}
+
+.rom-table td strong {
+  color: #1e293b;
+}
+
+.status-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.status-tag.normal, .status-tag.symmetrical {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-tag.restricted, .status-tag.asymmetrical {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.symmetry-section, .alignment-section {
+  margin-bottom: 25px;
+}
+
+.symmetry-section h4, .alignment-section h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 6px;
+}
+
+.symmetry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.symmetry-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.symmetry-label span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.symmetry-label small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.alignment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.alignment-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.alignment-label span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.alignment-label small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.alignment-row strong {
+  font-size: 15px;
+  color: #0f172a;
+}
+
+/* Corrective Recommendations Section */
+.recommendations-section-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f1f5f9;
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-top: 25px;
+}
+
+.rec-card {
+  background: #eff6ff;
+  border-left: 5px solid #2563eb;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.04);
+}
+
+.rec-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px dashed rgba(37, 99, 235, 0.2);
+  padding-bottom: 10px;
+}
+
+.rec-card-header h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin: 0;
+}
+
+.rec-freq {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  background: #ffffff;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.rec-exercises-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rec-exercises-list li {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+.ex-num {
+  background: #2563eb;
+  color: white;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ex-text {
+  text-align: left;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}

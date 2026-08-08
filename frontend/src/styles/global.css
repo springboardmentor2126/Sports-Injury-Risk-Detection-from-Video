@@ -1,0 +1,195 @@
+/* ===========================
+   GLOBAL UTILITIES
+=========================== */
+
+.section{
+    padding:80px 0;
+}
+
+.title{
+    font-size:42px;
+    font-weight:800;
+    color:#0F172A;
+}
+
+.subtitle{
+    margin-top:12px;
+    color:#64748B;
+    line-height:1.8;
+    font-size:17px;
+}
+
+.grid{
+    display:grid;
+    gap:25px;
+}
+
+.card{
+    background:#fff;
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 12px 30px rgba(15,23,42,.08);
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-6px);
+}
+
+.btn{
+    background:#2563EB;
+    color:white;
+    padding:14px 28px;
+    border-radius:12px;
+    font-weight:600;
+    transition:.3s;
+    display:inline-block;
+}
+
+.btn:hover{
+    background:#1D4ED8;
+    transform:translateY(-2px);
+}
+
+.btn-outline{
+    border:2px solid #2563EB;
+    color:#2563EB;
+    background:white;
+    padding:14px 28px;
+    border-radius:12px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-outline:hover{
+    background:#2563EB;
+    color:white;
+}
+
+.page{
+    min-height:100vh;
+    padding:60px 0;
+}
+
+/* ===========================
+   NAVBAR
+=========================== */
+
+.navbar{
+    height:80px;
+    background:white;
+    box-shadow:0 5px 20px rgba(15,23,42,.06);
+    position:sticky;
+    top:0;
+    z-index:999;
+}
+
+.navbar-content{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:80px;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:24px;
+    font-weight:800;
+    color:#2563EB;
+}
+
+.nav-links{
+    display:flex;
+    gap:35px;
+}
+
+.nav-links a{
+    color:#475569;
+    font-weight:600;
+    transition:.3s;
+}
+
+.nav-links a:hover{
+    color:#2563EB;
+}
+
+.nav-actions{
+    display:flex;
+    gap:15px;
+}
+
+/* ===========================
+   FORMS
+=========================== */
+
+.form-card{
+    width:100%;
+    max-width:480px;
+    margin:auto;
+    background:white;
+    padding:40px;
+    border-radius:20px;
+    box-shadow:0 15px 35px rgba(15,23,42,.08);
+}
+
+.form-card h2{
+    margin-bottom:30px;
+}
+
+.form-group{
+    margin-bottom:18px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+}
+
+.form-control{
+    width:100%;
+    padding:14px;
+    border:1px solid #CBD5E1;
+    border-radius:12px;
+    font-size:15px;
+}
+
+.form-control:focus{
+    border-color:#2563EB;
+}
+
+/* ===========================
+   KPI CARD
+=========================== */
+
+.stat-card{
+    background:white;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 12px 30px rgba(15,23,42,.08);
+}
+
+.stat-title{
+    color:#64748B;
+    font-size:14px;
+}
+
+.stat-value{
+    margin-top:12px;
+    font-size:34px;
+    font-weight:800;
+}
+
+.stat-icon{
+    width:55px;
+    height:55px;
+    border-radius:15px;
+    background:#DBEAFE;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#2563EB;
+    font-size:24px;
+}

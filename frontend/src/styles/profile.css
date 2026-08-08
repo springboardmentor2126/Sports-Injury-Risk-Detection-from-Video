@@ -1,0 +1,32 @@
+.profile-card{
+max-width:900px;
+}
+
+.profile-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.profile-grid textarea{
+grid-column:span 2;
+resize:none;
+}
+
+.profile-btn{
+grid-column:span 2;
+margin-top:10px;
+}
+
+@media(max-width:768px){
+
+.profile-grid{
+grid-template-columns:1fr;
+}
+
+.profile-grid textarea,
+.profile-btn{
+grid-column:span 1;
+}
+
+}
