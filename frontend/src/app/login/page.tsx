@@ -1,8 +1,8 @@
 "use client";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { authApi, setToken } from "@/lib/api";
+import { authApi, setToken, getToken } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,6 +10,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (getToken()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -20,7 +26,7 @@ export default function LoginPage() {
       setToken(data.access_token);
       // Clear any cached analysis from a previous account session
       localStorage.removeItem("sg_last_analysis");
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Incorrect email or password.");
     } finally {
@@ -68,7 +74,7 @@ export default function LoginPage() {
           </p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {["YOLOv8 Pose Estimation", "Joint Angle Biomechanics", "XGBoost Risk Scoring", "Recovery Recommendations"].map(f => (
+          {["MediaPipe Pose Estimation", "Joint Angle Biomechanics", "XGBoost Risk Scoring", "Recovery Recommendations"].map(f => (
             <div key={f} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#2563eb", flexShrink: 0 }} />
               <span style={{ color: "#cbd5e1", fontSize: "14px" }}>{f}</span>

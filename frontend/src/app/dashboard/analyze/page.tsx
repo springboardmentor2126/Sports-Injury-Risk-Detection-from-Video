@@ -3,7 +3,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { videoApi, authApi, AnalysisResult } from "@/lib/api";
 
-const LS_KEY = "sg_last_analysis"; // localStorage key for persisting result
+const LS_KEY = "sg_last_analysis";           // localStorage key for persisting result
+const LS_ANALYZING_KEY = "sg_analysis_in_progress"; // key for the global banner
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -97,6 +98,28 @@ export default function AnalyzePage() {
     } catch { /* ignore */ }
   }, []);
 
+  // Poll for AI recommendations if they are missing
+  useEffect(() => {
+    if (result && !result.ai_recommendations) {
+      const interval = setInterval(async () => {
+        try {
+          const history = await videoApi.getHistory();
+          const currentSession = history.find(h => h.session_id === result.session_id);
+          if (currentSession && currentSession.ai_recommendations) {
+            // Recommendation is ready! Update state and localStorage.
+            const updatedResult = { ...result, ai_recommendations: currentSession.ai_recommendations };
+            setResult(updatedResult);
+            localStorage.setItem(LS_KEY, JSON.stringify(updatedResult));
+          }
+        } catch (e) {
+          console.error("Failed to poll history", e);
+        }
+      }, 3000); // Check every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [result]);
+
 
   const handleFile = (f: File) => {
     const ext = f.name.split(".").pop()?.toLowerCase() || "";
@@ -121,13 +144,15 @@ export default function AnalyzePage() {
     setProgress(0);
     setError(null);
     setStage("Uploading video...");
+    // Set the global banner — survives navigation
+    try { localStorage.setItem(LS_ANALYZING_KEY, JSON.stringify({ filename: file.name })); } catch {}
 
     try {
       const stages = [
         { at: 30, msg: "Extracting frames..." },
         { at: 55, msg: "Running pose estimation..." },
         { at: 75, msg: "Analysing biomechanics..." },
-        { at: 90, msg: "Generating report..." },
+        { at: 90, msg: "Calculating injury risk..." },
       ];
 
       const data = await videoApi.uploadVideo(file, (pct) => {
@@ -136,7 +161,7 @@ export default function AnalyzePage() {
         if (s) setStage(s.msg);
       });
 
-      setStage("Complete!");
+      setStage("Complete! ✨");
       // Persist to localStorage so result survives navigation
       localStorage.setItem(LS_KEY, JSON.stringify(data));
       setResult(data);
@@ -144,6 +169,8 @@ export default function AnalyzePage() {
       setError(e instanceof Error ? e.message : "Analysis failed.");
     } finally {
       setUploading(false);
+      // Clear the global banner regardless of success or failure
+      try { localStorage.removeItem(LS_ANALYZING_KEY); } catch {}
     }
   };
 
@@ -243,7 +270,7 @@ export default function AnalyzePage() {
             display: "flex", alignItems: "center", gap: "16px",
             padding: "20px 24px", borderRadius: "14px",
             background: risk.bg, border: `2px solid ${risk.border}`,
-            marginBottom: "24px",
+            marginBottom: "16px",
           }}>
             <div style={{
               width: "48px", height: "48px", borderRadius: "50%",
@@ -254,13 +281,12 @@ export default function AnalyzePage() {
             <div>
               <p style={{ fontWeight: 700, fontSize: "18px", color: risk.color, margin: 0 }}>{risk.label}</p>
               <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0" }}>
-                {result.video.filename} · {result.video.duration_seconds.toFixed(1)}s · {result.video.pose_detection_rate}% pose detection
+                {result.video.filename} &middot; {result.video.duration_seconds.toFixed(1)}s &middot; {result.video.pose_detection_rate}% pose detection
               </p>
             </div>
             <button
               id="analyze-new-btn"
               onClick={() => {
-                // Delete skeleton video from server first, then reset UI
                 if (result.session_id) videoApi.deleteSkeletonVideo(result.session_id);
                 localStorage.removeItem(LS_KEY);
                 setResult(null);
@@ -274,6 +300,45 @@ export default function AnalyzePage() {
               }}
             >+ New Video</button>
           </div>
+
+          {/* XGBoost AI Verdict Panel */}
+          {result.xgboost && (
+            <div style={{
+              background: "#f8fafc", border: "1px solid #e2e8f0",
+              borderRadius: "14px", padding: "16px 20px", marginBottom: "24px",
+              display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "18px" }}>🤖</span>
+                <div>
+                  <p style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>AI Confidence</p>
+                  <p style={{ fontSize: "20px", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                    {(result.xgboost.confidence * 100).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+              <div style={{ flex: 1, minWidth: "200px" }}>
+                <p style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>Risk Probability Breakdown</p>
+                {(["low", "moderate", "high", "critical"] as const).map(lvl => {
+                  const pct = Math.round((result.xgboost.probabilities[lvl] ?? 0) * 100);
+                  const colors: Record<string, string> = { low: "#16a34a", moderate: "#d97706", high: "#dc2626", critical: "#7c3aed" };
+                  return (
+                    <div key={lvl} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                      <span style={{ fontSize: "11px", width: "60px", color: "#64748b", textTransform: "capitalize" }}>{lvl}</span>
+                      <div style={{ flex: 1, height: "6px", background: "#e2e8f0", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${pct}%`, background: colors[lvl], borderRadius: "3px", transition: "width 0.8s ease" }} />
+                      </div>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: colors[lvl], width: "34px", textAlign: "right" }}>{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", borderLeft: "1px solid #e2e8f0", paddingLeft: "16px" }}>
+                Sport profile used:<br />
+                <strong style={{ color: "#475569" }}>{result.xgboost.sport_used.replace("_", " ")}</strong>
+              </div>
+            </div>
+          )}
 
           {/* ── Skeleton Video Player ── */}
           {result.annotated_video_url && (
@@ -364,17 +429,62 @@ export default function AnalyzePage() {
             </div>
           </div>
 
-          {/* Risk Flags */}
-          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "14px", padding: "20px" }}>
-            <h2 style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", marginBottom: "14px" }}>🚨 Risk Flag Summary</h2>
-            <RiskBadge count={result.risk_flags.knee_acute_flexion_frames}   label="Acute Knee Flexion (< 70°) — ACL risk"         color="#dc2626" />
-            <RiskBadge count={result.risk_flags.knee_hyperextension_frames}  label="Knee Hyperextension (> 175°) — ligament risk"   color="#dc2626" />
-            <RiskBadge count={result.risk_flags.elbow_hyperextension_frames} label="Elbow Hyperextension — throwing injury risk"     color="#d97706" />
-            <RiskBadge count={result.risk_flags.excessive_trunk_lean_frames} label="Excessive Trunk Lean (> 25°) — back injury risk" color="#d97706" />
-            <RiskBadge count={result.risk_flags.low_symmetry_frames}         label="Low Movement Symmetry (< 75%) — compensation"   color="#7c3aed" />
-          </div>
+          {/* ── AI CORRECTIVE PLAN — shown to athlete after upload ── */}
+          {result.ai_recommendations ? (
+            <div style={{ background: "#fff", borderTop: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0", borderRadius: "14px", padding: "20px", borderLeft: "4px solid #7c3aed" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <h2 style={{ fontSize: "14px", fontWeight: 700, color: "#7c3aed", margin: 0 }}>📋 AI Corrective Plan</h2>
+                <span style={{ fontSize: "10px", color: "#94a3b8" }}>Powered by Gemini AI</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px" }}>
+                <div>
+                  <p style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>💪 Exercises</p>
+                  <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                    {result.ai_recommendations.exercise_recommendations.map((e: string, i: number) => (
+                      <li key={i} style={{ fontSize: "12px", color: "#374151", padding: "5px 0", borderBottom: "1px solid #f1f5f9", display: "flex", gap: "6px" }}>
+                        <span style={{ color: "#7c3aed", flexShrink: 0 }}>•</span>{e}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>🧘 Mobility</p>
+                  <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                    {result.ai_recommendations.mobility_suggestions.map((e: string, i: number) => (
+                      <li key={i} style={{ fontSize: "12px", color: "#374151", padding: "5px 0", borderBottom: "1px solid #f1f5f9", display: "flex", gap: "6px" }}>
+                        <span style={{ color: "#16a34a", flexShrink: 0 }}>•</span>{e}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>🔄 Recovery</p>
+                  <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                    {result.ai_recommendations.recovery_planning.map((e: string, i: number) => (
+                      <li key={i} style={{ fontSize: "12px", color: "#374151", padding: "5px 0", borderBottom: "1px solid #f1f5f9", display: "flex", gap: "6px" }}>
+                        <span style={{ color: "#d97706", flexShrink: 0 }}>•</span>{e}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* AI plan is being generated in background — show subtle placeholder */
+            <div style={{ background: "#faf5ff", borderTop: "1px solid #ddd6fe", borderRight: "1px solid #ddd6fe", borderBottom: "1px solid #ddd6fe", borderRadius: "14px", padding: "18px 20px", borderLeft: "4px solid #7c3aed", display: "flex", alignItems: "center", gap: "12px" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" style={{ animation: "spin 1s linear infinite", flexShrink: 0 }}>
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+              </svg>
+              <div>
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#7c3aed", margin: 0 }}>📋 AI Corrective Plan — Generating...</p>
+                <p style={{ fontSize: "12px", color: "#94a3b8", margin: "3px 0 0" }}>Gemini AI is building your personalised plan. View it by reopening this session from your history.</p>
+              </div>
+            </div>
+          )}
+
         </div>
       )}
     </div>
   );
 }
+

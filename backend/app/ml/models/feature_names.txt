@@ -1,0 +1,12 @@
+sport_encoded
+knee_flexion
+hip_angle
+elbow_angle
+shoulder_rotation
+trunk_lean
+knee_valgus_angle
+symmetry
+flag_knee_hyperext
+flag_knee_valgus
+flag_trunk_lean
+flag_low_symmetry

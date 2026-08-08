@@ -93,8 +93,8 @@ export default function AthletesPage() {
             const sym = a.latest_symmetry != null ? Math.round(a.latest_symmetry * 100) : null;
             const lastSeen = a.last_session_at ? new Date(a.last_session_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "No sessions yet";
             return (
-              <Link key={a.user_id} href={`/dashboard/athletes/${a.user_id}`} style={{ textDecoration: "none" }}>
-                <div className="sg-card" style={{ cursor: "pointer", transition: "all 0.15s", borderLeft: rc ? `4px solid ${rc.color}` : "4px solid #e2e8f0" }}
+              <Link key={a.user_id} href={`/dashboard/athletes/${a.user_id}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
+                <div className="sg-card" style={{ cursor: "pointer", transition: "all 0.15s", borderLeft: rc ? `4px solid ${rc.color}` : "4px solid #e2e8f0", height: "100%", display: "flex", flexDirection: "column" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 6px 20px rgba(0,0,0,0.08)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = ""; }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
@@ -107,7 +107,7 @@ export default function AthletesPage() {
                     </div>
                     {rc && <span style={{ fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "20px", background: rc.bg, color: rc.color, flexShrink: 0 }}>{rc.label}</span>}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", borderTop: "1px solid #f1f5f9", paddingTop: "12px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", borderTop: "1px solid #f1f5f9", paddingTop: "12px", marginTop: "auto" }}>
                     <div style={{ textAlign: "center" }}>
                       <p style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a" }}>{a.session_count}</p>
                       <p style={{ fontSize: "11px", color: "#94a3b8" }}>Sessions</p>
