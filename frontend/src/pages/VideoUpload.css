@@ -1,0 +1,118 @@
+.upload-page{
+
+    min-height:100vh;
+    background:#f4f7fb;
+    padding:40px;
+    font-family:"Segoe UI",sans-serif;
+
+}
+
+
+.upload-page h1{
+
+    color:#111827;
+    font-size:38px;
+    margin-bottom:30px;
+
+}
+
+
+.upload-card{
+
+    width:70%;
+    background:#2563eb;
+    color:white;
+    padding:40px;
+    border-radius:25px;
+    box-shadow:0 15px 30px rgba(0,0,0,.15);
+
+}
+
+
+.upload-card h2{
+
+    text-align:center;
+    font-size:30px;
+
+}
+
+
+.upload-card p{
+
+    text-align:center;
+    margin-bottom:30px;
+
+}
+
+
+.upload-card input{
+
+    background:white;
+    padding:12px;
+    border-radius:10px;
+    width:100%;
+    margin-bottom:25px;
+
+}
+
+
+.upload-card button{
+
+    background:#22c55e;
+    color:white;
+    border:none;
+    padding:14px 30px;
+    border-radius:30px;
+    font-size:17px;
+    cursor:pointer;
+
+}
+
+
+.upload-card button:hover{
+
+    background:#16a34a;
+
+}
+
+
+
+/* RESULT */
+
+.result-card{
+
+    margin-top:40px;
+    background:#1f2937;
+    color:white;
+    padding:35px;
+    border-radius:25px;
+    width:70%;
+
+}
+
+
+.result-card h1{
+
+    color:#22c55e;
+    font-size:50px;
+
+}
+
+
+.result-card li{
+
+    margin:10px 0;
+
+}
+
+
+@media(max-width:768px){
+
+.upload-card,
+.result-card{
+
+    width:100%;
+
+}
+
+}

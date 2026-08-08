@@ -1,0 +1,565 @@
+/* =========================================================
+   REPORT PAGE
+========================================================= */
+
+.report-page {
+    width: 100%;
+    min-height: calc(100vh - 60px);
+    padding: 10px 10px 40px;
+    box-sizing: border-box;
+    background: #eef4fb;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+
+/* =========================================================
+   REPORT CONTAINER
+========================================================= */
+
+.report-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+
+    background: #ffffff;
+
+    border-radius: 18px;
+
+    padding: 35px;
+
+    box-sizing: border-box;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.08);
+
+    border: 1px solid #e5e7eb;
+}
+
+
+/* =========================================================
+   REPORT TITLE
+========================================================= */
+
+.report-title {
+    margin: 0 0 35px;
+
+    text-align: center;
+
+    color: #111827;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    letter-spacing: -0.5px;
+}
+
+
+/* =========================================================
+   TOP INFORMATION ROW
+========================================================= */
+
+.report-row {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 25px;
+
+    margin-bottom: 30px;
+}
+
+
+/* =========================================================
+   INFORMATION BOX
+========================================================= */
+
+.report-box {
+    background: #f8fafc;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 14px;
+
+    padding: 22px;
+
+    box-sizing: border-box;
+
+    transition: all 0.25s ease;
+}
+
+.report-box:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+
+/* =========================================================
+   BOX HEADING
+========================================================= */
+
+.report-box h3 {
+    margin: 0 0 15px;
+
+    padding-bottom: 10px;
+
+    color: #1565c0;
+
+    font-size: 19px;
+    font-weight: 700;
+
+    border-bottom: 2px solid #19c2ff;
+}
+
+
+/* =========================================================
+   BOX TEXT
+========================================================= */
+
+.report-box p {
+    margin: 10px 0;
+
+    color: #4b5563;
+
+    font-size: 15px;
+
+    line-height: 1.6;
+}
+
+.report-box p b {
+    color: #111827;
+}
+
+
+/* =========================================================
+   SECTION
+========================================================= */
+
+.section {
+    margin-top: 32px;
+}
+
+
+/* =========================================================
+   SECTION HEADING
+========================================================= */
+
+.section h2 {
+    margin: 0 0 15px;
+
+    padding-bottom: 10px;
+
+    color: #1565c0;
+
+    font-size: 22px;
+    font-weight: 700;
+
+    border-bottom: 2px solid #19c2ff;
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.section table {
+    width: 100%;
+
+    border-collapse: separate;
+    border-spacing: 0;
+
+    margin-top: 15px;
+
+    overflow: hidden;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 12px;
+}
+
+
+/* =========================================================
+   TABLE HEADER
+========================================================= */
+
+.section table th {
+    background: #1976d2;
+
+    color: #ffffff;
+
+    padding: 14px 12px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   TABLE CELLS
+========================================================= */
+
+.section table td {
+    padding: 14px 12px;
+
+    background: #ffffff;
+
+    color: #374151;
+
+    font-size: 14px;
+
+    text-align: center;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+
+/* =========================================================
+   TABLE ROW HOVER
+========================================================= */
+
+.section table tbody tr:hover td {
+    background: #f8fafc;
+}
+
+
+/* =========================================================
+   RISK BOX
+========================================================= */
+
+.risk-box {
+    background: #f5f9ff;
+
+    border-left: 5px solid #1976d2;
+
+    border-radius: 10px;
+
+    padding: 18px 20px;
+
+    margin-top: 15px;
+
+    color: #374151;
+
+    font-size: 16px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   RECOMMENDATION
+========================================================= */
+
+.section > p {
+    background: #f8fafc;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 12px;
+
+    padding: 18px 20px;
+
+    margin: 0;
+
+    color: #374151;
+
+    font-size: 15px;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   LIST
+========================================================= */
+
+.section ul {
+    padding-left: 25px;
+
+    margin-top: 15px;
+}
+
+.section li {
+    margin-bottom: 10px;
+
+    color: #374151;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   DOWNLOAD BUTTON
+========================================================= */
+
+.download {
+    display: flex;
+
+    justify-content: center;
+
+    margin-top: 40px;
+
+    padding-top: 25px;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+
+/* =========================================================
+   DOWNLOAD BUTTON
+========================================================= */
+
+.download button {
+    min-width: 190px;
+
+    padding: 14px 30px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #19c2ff;
+
+    color: #ffffff;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+.download button:hover {
+    background: #0ea5d8;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 18px rgba(25, 194, 255, 0.25);
+}
+
+.download button:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.report-container > button {
+    padding: 12px 24px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #19c2ff;
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+.report-container > button:hover {
+    background: #0ea5d8;
+
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 1024px) {
+
+    .report-page {
+        padding: 10px 5px 35px;
+    }
+
+    .report-container {
+        max-width: 100%;
+
+        padding: 28px;
+    }
+
+    .report-title {
+        font-size: 29px;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE - SMALL TABLET
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .report-page {
+        padding: 5px 0 30px;
+    }
+
+    .report-container {
+        padding: 24px;
+
+        border-radius: 14px;
+    }
+
+    .report-title {
+        font-size: 25px;
+
+        margin-bottom: 25px;
+    }
+
+    .report-row {
+        grid-template-columns: 1fr;
+
+        gap: 18px;
+    }
+
+    .report-box {
+        padding: 18px;
+    }
+
+    .section {
+        margin-top: 25px;
+    }
+
+    .section h2 {
+        font-size: 20px;
+    }
+
+    .section table {
+        display: block;
+
+        overflow-x: auto;
+
+        white-space: nowrap;
+    }
+
+    .download {
+        margin-top: 30px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .report-container {
+        padding: 18px;
+
+        border-radius: 12px;
+    }
+
+    .report-title {
+        font-size: 22px;
+
+        line-height: 1.3;
+    }
+
+    .report-box h3 {
+        font-size: 17px;
+    }
+
+    .report-box p {
+        font-size: 14px;
+    }
+
+    .section h2 {
+        font-size: 18px;
+    }
+
+    .section table th,
+    .section table td {
+        padding: 11px 10px;
+
+        font-size: 13px;
+    }
+
+    .download button {
+        width: 100%;
+
+        min-width: 0;
+    }
+}
+
+
+/* =========================================================
+   PRINT / DOWNLOAD PDF
+========================================================= */
+
+@media print {
+
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+
+    body {
+        background: #ffffff !important;
+    }
+
+    .report-page {
+        min-height: auto;
+
+        padding: 0;
+
+        background: #ffffff;
+    }
+
+    .report-container {
+        width: 100%;
+
+        max-width: none;
+
+        margin: 0;
+
+        padding: 0;
+
+        border: none;
+
+        border-radius: 0;
+
+        box-shadow: none;
+    }
+
+    .report-title {
+        color: #111827;
+
+        margin-bottom: 25px;
+    }
+
+    .report-box {
+        box-shadow: none;
+
+        break-inside: avoid;
+    }
+
+    .section {
+        break-inside: avoid;
+    }
+
+    .download {
+        display: none;
+    }
+
+    .section table {
+        overflow: visible;
+    }
+}

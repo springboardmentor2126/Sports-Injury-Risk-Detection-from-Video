@@ -1,0 +1,271 @@
+/* ===========================
+   Global Application Styles
+=========================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    background: #f4f7fb;
+    color: #111827;
+}
+
+
+/* ===========================
+   App Container
+=========================== */
+
+#root {
+    min-height: 100vh;
+}
+
+
+/* ===========================
+   Global Headings
+=========================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #111827;
+    font-weight: 700;
+}
+
+
+/* ===========================
+   Global Text
+=========================== */
+
+p {
+    color: #6b7280;
+}
+
+
+/* ===========================
+   Links
+=========================== */
+
+a {
+    color: #2563eb;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+a:hover {
+    color: #1d4ed8;
+}
+
+
+/* ===========================
+   Buttons
+=========================== */
+
+button {
+    font-family: "Segoe UI", sans-serif;
+    transition: all 0.25s ease;
+}
+
+button:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.25);
+    outline-offset: 2px;
+}
+
+
+/* ===========================
+   Primary Button
+=========================== */
+
+.primary-button {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.primary-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+}
+
+
+/* ===========================
+   Secondary Button
+=========================== */
+
+.secondary-button {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.secondary-button:hover {
+    background: #d1d5db;
+    transform: translateY(-2px);
+}
+
+
+/* ===========================
+   Common Card
+=========================== */
+
+.card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transition: all 0.25s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.10);
+}
+
+
+/* ===========================
+   Form Inputs
+=========================== */
+
+input,
+select,
+textarea {
+    font-family: "Segoe UI", sans-serif;
+    font-size: 15px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+}
+
+
+/* ===========================
+   Scrollbar
+=========================== */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f4f7fb;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+
+/* ===========================
+   Selection
+=========================== */
+
+::selection {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+
+/* ===========================
+   Loading
+=========================== */
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: #6b7280;
+    font-size: 16px;
+}
+
+
+/* ===========================
+   Error Message
+=========================== */
+
+.error-message {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 14px;
+}
+
+
+/* ===========================
+   Success Message
+=========================== */
+
+.success-message {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 14px;
+}
+
+
+/* ===========================
+   Responsive Design
+=========================== */
+
+@media (max-width: 768px) {
+
+    .card {
+        padding: 22px;
+        border-radius: 14px;
+    }
+
+    .primary-button,
+    .secondary-button {
+        width: 100%;
+    }
+}
+
+
+/* ===========================
+   Small Mobile Screens
+=========================== */
+
+@media (max-width: 480px) {
+
+    body {
+        font-size: 14px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+}

@@ -1,0 +1,267 @@
+.risk-page{
+
+    padding:40px;
+
+    background:#111827;
+
+    min-height:100vh;
+
+    color:white;
+
+    font-family:"Segoe UI";
+
+}
+
+
+
+.risk-page h1{
+
+    margin-bottom:30px;
+
+}
+
+
+
+.risk-card{
+
+    display:flex;
+
+    gap:40px;
+
+    background:#1f2937;
+
+    padding:30px;
+
+    border-radius:20px;
+
+}
+
+
+
+.score-circle{
+
+    width:150px;
+
+    height:150px;
+
+    border-radius:50%;
+
+    border:15px solid #ec4899;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+
+
+.score-circle h2{
+
+    font-size:45px;
+
+    margin:0;
+
+}
+
+
+
+.score-circle span{
+
+    color:#fb7185;
+
+}
+
+
+
+.risk-details p{
+
+    color:#d1d5db;
+
+}
+
+
+
+
+.recommend-grid{
+
+    margin-top:30px;
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:20px;
+
+}
+
+
+
+.recommend-card{
+
+    background:#1f2937;
+
+    padding:25px;
+
+    border-radius:15px;
+
+}
+
+
+
+.recommend-card h3{
+
+    color:#9ca3af;
+
+    font-size:14px;
+
+}
+
+
+
+.recommend-card p{
+
+    line-height:1.6;
+
+    color:#e5e7eb;
+
+}
+
+
+
+
+@media(max-width:900px){
+
+    .recommend-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+
+    .risk-card{
+
+        flex-direction:column;
+
+    }
+
+}
+
+/* ===========================
+   Biomechanical Metrics
+=========================== */
+
+
+.metrics-section{
+
+    margin-top:40px;
+
+}
+
+
+
+.metrics-section h2{
+
+    color:white;
+
+    margin-bottom:25px;
+
+    font-size:28px;
+
+}
+
+
+
+
+.metrics-grid{
+
+
+    display:grid;
+
+
+    grid-template-columns:
+
+    repeat(4,1fr);
+
+
+    gap:20px;
+
+
+}
+
+
+
+
+.metric-card{
+
+
+    background:#1f2937;
+
+
+    padding:25px;
+
+
+    border-radius:18px;
+
+
+    text-align:center;
+
+
+    box-shadow:
+
+    0 10px 25px rgba(0,0,0,.3);
+
+
+}
+
+
+
+.metric-card h3{
+
+
+    color:#94a3b8;
+
+
+    font-size:16px;
+
+
+}
+
+
+
+
+.metric-card p{
+
+
+    color:white;
+
+
+    font-size:32px;
+
+
+    font-weight:bold;
+
+
+}
+
+
+
+
+
+@media(max-width:900px){
+
+
+.metrics-grid{
+
+
+grid-template-columns:repeat(2,1fr);
+
+
+}
+
+
+}

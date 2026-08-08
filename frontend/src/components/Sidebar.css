@@ -1,0 +1,273 @@
+/* ===========================
+   Sidebar
+=========================== */
+
+.sidebar {
+    width: 260px;
+    height: 100vh;
+
+    position: fixed;
+    left: 0;
+    top: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    padding: 30px 20px;
+
+    background: #171d2d;
+    color: #ffffff;
+
+    box-sizing: border-box;
+
+    z-index: 1000;
+
+    overflow-y: auto;
+
+    transition: all 0.25s ease;
+}
+
+
+/* ===========================
+   Sidebar Logo
+=========================== */
+
+.sidebar-logo {
+    padding: 0 5px;
+}
+
+.sidebar-logo h2 {
+    color: #19c2ff;
+    font-size: 30px;
+    font-weight: 700;
+
+    margin: 0;
+
+    letter-spacing: -0.5px;
+}
+
+
+/* ===========================
+   Sidebar Menu
+=========================== */
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-top: 40px;
+}
+
+
+/* ===========================
+   Sidebar Links
+=========================== */
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    text-decoration: none;
+
+    color: #d5d9e3;
+
+    padding: 14px 18px;
+
+    border-radius: 10px;
+
+    font-size: 16px;
+    font-weight: 500;
+
+    transition: all 0.25s ease;
+}
+
+
+/* ===========================
+   Link Hover
+=========================== */
+
+.sidebar-menu a:hover {
+    background: #252d43;
+    color: #ffffff;
+
+    transform: translateX(3px);
+}
+
+
+/* ===========================
+   Active Link
+=========================== */
+
+.sidebar-menu .active {
+    background: #252d43;
+    color: #19c2ff;
+
+    font-weight: 600;
+
+    box-shadow: inset 3px 0 0 #19c2ff;
+}
+
+
+/* ===========================
+   Sidebar Bottom
+=========================== */
+
+.sidebar-bottom {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 25px;
+}
+
+
+/* ===========================
+   Logout Button
+=========================== */
+
+.logout-btn {
+    width: 100%;
+
+    padding: 13px 14px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #19c2ff;
+    color: #ffffff;
+
+    font-family: "Segoe UI", sans-serif;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+
+/* ===========================
+   Logout Hover
+=========================== */
+
+.logout-btn:hover {
+    background: #0ea5d8;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 18px rgba(25, 194, 255, 0.25);
+}
+
+
+/* ===========================
+   Logout Focus
+=========================== */
+
+.logout-btn:focus-visible {
+    outline: 3px solid rgba(25, 194, 255, 0.3);
+    outline-offset: 2px;
+}
+
+
+/* ===========================
+   Scrollbar
+=========================== */
+
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #343c52;
+    border-radius: 10px;
+}
+
+
+/* ===========================
+   Tablet
+=========================== */
+
+@media (max-width: 1024px) {
+
+    .sidebar {
+        width: 220px;
+        padding: 25px 15px;
+    }
+
+    .sidebar-logo h2 {
+        font-size: 27px;
+    }
+
+    .sidebar-menu a {
+        padding: 13px 15px;
+        font-size: 15px;
+    }
+}
+
+
+/* ===========================
+   Mobile
+=========================== */
+
+@media (max-width: 768px) {
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+
+        position: relative;
+
+        padding: 20px;
+
+        flex-direction: column;
+    }
+
+    .sidebar-menu {
+        margin-top: 25px;
+        gap: 8px;
+    }
+
+    .sidebar-menu a {
+        padding: 12px 15px;
+    }
+
+    .sidebar-bottom {
+        margin-top: 20px;
+        padding-top: 0;
+    }
+}
+
+
+/* ===========================
+   Small Mobile
+=========================== */
+
+@media (max-width: 480px) {
+
+    .sidebar {
+        padding: 18px 15px;
+    }
+
+    .sidebar-logo h2 {
+        font-size: 25px;
+    }
+
+    .sidebar-menu a {
+        font-size: 14px;
+        padding: 11px 13px;
+    }
+
+    .logout-btn {
+        font-size: 14px;
+    }
+}

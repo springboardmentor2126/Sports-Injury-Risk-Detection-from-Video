@@ -1,0 +1,319 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+/* ===========================
+   Login & Register Page
+=========================== */
+
+.login-page{
+
+    min-height:100vh;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:80px;
+
+    padding:40px;
+
+    background:
+    radial-gradient(circle at top left,#243b55,#141e30);
+
+    font-family:"Segoe UI",sans-serif;
+
+}
+
+/* ===========================
+   LEFT SIDE
+=========================== */
+
+.login-left{
+
+    width:500px;
+
+    color:white;
+
+}
+
+.login-left h1{
+
+    font-size:55px;
+
+    line-height:1.1;
+
+    margin-bottom:20px;
+
+}
+
+.login-left p{
+
+    font-size:18px;
+
+    color:#cbd5e1;
+
+    line-height:1.6;
+
+}
+
+.feature-box{
+
+    margin-top:25px;
+
+    padding:20px;
+
+    background:
+    rgba(255,255,255,0.08);
+
+    border:
+    1px solid rgba(255,255,255,0.15);
+
+    border-radius:18px;
+
+    backdrop-filter:blur(10px);
+
+}
+
+.feature-box h3{
+
+    color:white;
+
+    margin-bottom:8px;
+
+    font-size:18px;
+
+}
+
+.feature-box p{
+
+    color:#cbd5e1;
+
+    margin:0;
+
+}
+
+/* ===========================
+   CARD
+=========================== */
+
+.login-card{
+
+    width:420px;
+
+    padding:45px;
+
+    background:
+    rgba(255,255,255,0.08);
+
+    border-radius:25px;
+
+    backdrop-filter:blur(20px);
+
+    box-shadow:
+    0 20px 50px rgba(0,0,0,0.4);
+
+    color:white;
+
+}
+
+.login-card h2{
+
+    text-align:center;
+
+    font-size:32px;
+
+    margin-bottom:10px;
+
+}
+
+.login-card p{
+
+    text-align:center;
+
+    color:#cbd5e1;
+
+    margin-bottom:25px;
+
+}
+
+/* ===========================
+   FORM
+=========================== */
+
+.login-card form{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+/* Inputs */
+
+.login-card input{
+
+    width:100%;
+
+    padding:15px;
+
+    margin-bottom:20px;
+
+    border-radius:12px;
+
+    border:none;
+
+    outline:none;
+
+    font-size:15px;
+
+    background:#edf2ff;
+
+    color:#222;
+
+}
+
+/* Dropdown */
+
+.login-card select{
+
+    width:100%;
+
+    padding:15px;
+
+    margin-bottom:20px;
+
+    border-radius:12px;
+
+    border:none;
+
+    outline:none;
+
+    font-size:15px;
+
+    background:#edf2ff;
+
+    color:#222;
+
+    cursor:pointer;
+
+}
+
+.login-card select option{
+
+    color:#222;
+
+}
+
+/* Button */
+
+.login-card button{
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:30px;
+
+    background:
+    linear-gradient(
+    90deg,
+    #00c6ff,
+    #0072ff
+    );
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:0.3s;
+
+}
+
+.login-card button:hover{
+
+    transform:scale(1.03);
+
+}
+
+/* ===========================
+   Login/Register Link
+=========================== */
+
+.auth-link{
+
+    margin-top:25px;
+
+    text-align:center;
+
+    color:#cbd5e1;
+
+}
+
+.auth-link span{
+
+    color:#00c6ff;
+
+    cursor:pointer;
+
+    margin-left:5px;
+
+    font-weight:bold;
+
+}
+
+.auth-link span:hover{
+
+    text-decoration:underline;
+
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media(max-width:900px){
+
+    .login-page{
+
+        flex-direction:column;
+
+        gap:40px;
+
+        padding:30px;
+
+    }
+
+    .login-left{
+
+        width:90%;
+
+        text-align:center;
+
+    }
+
+    .login-left h1{
+
+        font-size:42px;
+
+    }
+
+    .login-card{
+
+        width:100%;
+
+        max-width:420px;
+
+    }
+
+}

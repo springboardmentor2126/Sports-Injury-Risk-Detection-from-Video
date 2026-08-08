@@ -1,0 +1,267 @@
+/* =========================================
+   Athlete Profile Page
+========================================= */
+
+.athlete-profile-page {
+    min-height: calc(100vh - 60px);
+    padding: 10px 10px 40px;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* =========================================
+   Header
+========================================= */
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.profile-header h1 {
+    margin: 0;
+    font-size: 34px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.profile-header p {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+/* =========================================
+   Main Card
+========================================= */
+
+.profile-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 32px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    max-width: 1000px;
+}
+
+/* =========================================
+   Card Header
+========================================= */
+
+.profile-card-header {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.profile-card-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #111827;
+    font-weight: 700;
+}
+
+.profile-card-header p {
+    margin-top: 7px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* =========================================
+   Profile Details
+========================================= */
+
+.profile-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.detail-item {
+    background: #f4f7fb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-label {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #111827;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* =========================================
+   Form
+========================================= */
+
+.profile-form {
+    width: 100%;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+}
+
+.profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.profile-field label {
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 15px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 15px;
+    outline: none;
+    transition: 0.25s ease;
+}
+
+.profile-field input:focus {
+    border-color: #19c2ff;
+    box-shadow: 0 0 0 3px rgba(25, 194, 255, 0.12);
+}
+
+.profile-field input::placeholder {
+    color: #9ca3af;
+}
+
+/* =========================================
+   Buttons
+========================================= */
+
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.edit-profile-btn,
+.save-profile-btn,
+.cancel-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.edit-profile-btn,
+.save-profile-btn {
+    background: #19c2ff;
+    color: #ffffff;
+}
+
+.edit-profile-btn:hover,
+.save-profile-btn:hover {
+    background: #0ea5d8;
+    transform: translateY(-1px);
+}
+
+.save-profile-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cancel-btn {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.cancel-btn:hover {
+    background: #d1d5db;
+}
+
+/* =========================================
+   Error
+========================================= */
+
+.profile-error {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* =========================================
+   Loading
+========================================= */
+
+.profile-loading {
+    min-height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #6b7280;
+    font-size: 17px;
+}
+
+/* =========================================
+   Responsive
+========================================= */
+
+@media (max-width: 768px) {
+
+    .athlete-profile-page {
+        padding: 10px 5px 30px;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    .profile-header h1 {
+        font-size: 28px;
+    }
+
+    .edit-profile-btn {
+        width: 100%;
+    }
+
+    .profile-card {
+        padding: 22px;
+    }
+
+    .profile-details,
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+    }
+
+    .save-profile-btn,
+    .cancel-btn {
+        width: 100%;
+    }
+}

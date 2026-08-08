@@ -1,0 +1,107 @@
+/* =========================================================
+   MAIN LAYOUT
+   ========================================================= */
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    background: #f4f7fb;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.main-content {
+    margin-left: 260px;
+
+    width: calc(100% - 260px);
+    min-height: 100vh;
+
+    padding: 30px;
+
+    background: #f4f7fb;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+
+    transition:
+        margin-left 0.25s ease,
+        width 0.25s ease,
+        padding 0.25s ease;
+}
+
+
+/* =========================================================
+   CONTENT CHILDREN
+   ========================================================= */
+
+.main-content > * {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1024px) {
+
+    .main-content {
+        margin-left: 220px;
+        width: calc(100% - 220px);
+        padding: 25px;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL TABLET
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .layout {
+        display: block;
+        width: 100%;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .main-content {
+        padding: 15px;
+    }
+
+}
+
+
+/* =========================================================
+   BOX SIZING
+   ========================================================= */
+
+.layout *,
+.layout *::before,
+.layout *::after {
+    box-sizing: border-box;
+}
