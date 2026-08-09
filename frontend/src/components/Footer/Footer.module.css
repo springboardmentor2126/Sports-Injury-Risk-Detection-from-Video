@@ -1,0 +1,10 @@
+.footer {
+  padding: 1rem 1.4rem 1.35rem;
+  text-align: center;
+  color: var(--slate-500);
+  font-size: 0.9rem;
+}
+
+.footer p {
+  margin: 0;
+}

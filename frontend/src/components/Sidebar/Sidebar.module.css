@@ -1,0 +1,54 @@
+.sidebar {
+  display: grid;
+  gap: 1rem;
+}
+
+.sidebarCard,
+.nav {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(191, 219, 254, 0.75);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+}
+
+.sidebarCard {
+  padding: 1.4rem;
+}
+
+.cardLabel {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--blue-600);
+  font-weight: 700;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.description {
+  margin: 0.7rem 0 0;
+  color: var(--slate-500);
+}
+
+.nav {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.85rem;
+}
+
+.navItem {
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  color: var(--slate-700);
+  background: transparent;
+}
+
+.active {
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+  color: #fff;
+  font-weight: 700;
+}

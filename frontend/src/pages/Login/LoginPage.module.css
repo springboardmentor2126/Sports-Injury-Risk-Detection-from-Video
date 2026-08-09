@@ -1,0 +1,11 @@
+.footerText {
+  margin: 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.footerLink {
+  color: #2563eb;
+  font-weight: 700;
+}

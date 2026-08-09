@@ -1,0 +1,167 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << /Font << /F1 7 0 R >> >> >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 7 0 R >> >> >>
+endobj
+5 0 obj
+<< /Length 2804 >>
+stream
+BT
+/F1 10 Tf
+72 760 Td
+(Sports Injury Risk Assessment Report) Tj
+0 -14 Td
+(AI-Powered Athlete Movement & Injury Risk Analysis) Tj
+0 -14 Td
+(============================================================) Tj
+0 -14 Td
+(Sports Injury Risk Assessment Report) Tj
+0 -14 Td
+(AI-Powered Athlete Movement & Injury Risk Analysis) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Athlete Information) Tj
+0 -14 Td
+(+--------------------+-----------------------+) Tj
+0 -14 Td
+(| Athlete Name      | Maya Chen            |) Tj
+0 -14 Td
+(| Video Name        | Warmup Session       |) Tj
+0 -14 Td
+(| Analysis Date     | 5/8/2026, 5:30:00 pm |) Tj
+0 -14 Td
+(| Video Duration    | 00:02:30             |) Tj
+0 -14 Td
+(| Frames Processed  | 250                  |) Tj
+0 -14 Td
+(| Processing Status | completed            |) Tj
+0 -14 Td
+(+--------------------+-----------------------+) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Risk Summary) Tj
+0 -14 Td
+(+------------------------+-------------------------+) Tj
+0 -14 Td
+(| Risk Score             | Risk Level              |) Tj
+0 -14 Td
+(| 88.50/100              | High Risk               |) Tj
+0 -14 Td
+(+------------------------+-------------------------+) Tj
+0 -14 Td
+(| Balance                | Stability               | Pose Quality           |) Tj
+0 -14 Td
+(| 78.20                  | 73.60                   | 81.70                  |) Tj
+0 -14 Td
+(+------------------------+-------------------------+------------------------+) Tj
+0 -14 Td
+(Issues Detected: 2) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Movement Metrics) Tj
+0 -14 Td
+(+--------------------+---------+---------+---------+--------------------+) Tj
+0 -14 Td
+(| Metric             | Average | Minimum | Maximum | Standard Deviation |) Tj
+0 -14 Td
+(+--------------------+---------+---------+---------+--------------------+) Tj
+0 -14 Td
+(| Left Knee Angle    | 90.00   | 80.00   | 100.00  | 5.00               |) Tj
+0 -14 Td
+(| Right Knee Angle   | 92.00   | 85.00   | 98.00   | 4.00               |) Tj
+0 -14 Td
+(| Shoulder Alignment | 2.20    | 1.00    | 3.00    | 0.90               |) Tj
+0 -14 Td
+(| Torso Lean         | 5.10    | 4.00    | 6.50    | 0.70               |) Tj
+0 -14 Td
+(| Balance Score      | 78.20   | N/A     | N/A     | N/A                |) Tj
+0 -14 Td
+(| Stability Score    | 73.60   | N/A     | N/A     | N/A                |) Tj
+0 -14 Td
+(| Pose Quality Score | 81.70   | N/A     | N/A     | N/A                |) Tj
+0 -14 Td
+(+--------------------+---------+---------+---------+--------------------+) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Detected Issues) Tj
+0 -14 Td
+(1. Knee valgus) Tj
+0 -14 Td
+(2. Shoulder imbalance) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Recommendations) Tj
+0 -14 Td
+(1. Rest: Take a recovery day and avoid heavy loads.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Analysis Summary) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Page 1 of 2) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Length 396 >>
+stream
+BT
+/F1 10 Tf
+72 760 Td
+(Sports Injury Risk Assessment Report) Tj
+0 -14 Td
+(AI-Powered Athlete Movement & Injury Risk Analysis) Tj
+0 -14 Td
+(============================================================) Tj
+0 -14 Td
+(Pose frames detected: N/A) Tj
+0 -14 Td
+(Frames analyzed: 250) Tj
+0 -14 Td
+(Processing status: completed) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+() Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(Page 2 of 2) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000247 00000 n 
+0000000373 00000 n 
+0000003229 00000 n 
+0000003676 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+3746
+%%EOF

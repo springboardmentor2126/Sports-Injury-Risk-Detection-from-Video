@@ -1,0 +1,256 @@
+.layout {
+  min-height: 100%;
+  display: grid;
+  justify-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
+}
+
+.dashboardShell {
+  width: min(100%, 1120px);
+  display: grid;
+  gap: 1.25rem;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.brandBlock {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.brandIcon {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: #1E293B;
+}
+
+.brandIcon svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.brandName {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.brandSubtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.logoutButton {
+  min-width: 7.5rem;
+  border-radius: 999px;
+  height: 2.75rem;
+}
+
+.placeholderCard,
+.welcomeCard,
+.actionCard {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.05);
+}
+
+.placeholderCard {
+  width: min(100%, 860px);
+  padding: 1.6rem;
+}
+
+.welcomeCard {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(219, 234, 254, 0.7));
+}
+
+.welcomeContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  text-align: left;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.placeholderCard h2,
+.welcomeCard h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.description {
+  margin: 0.7rem 0 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.welcomeContent p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.actionCard {
+  height: 100%;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 24px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+  width: 100%;
+}
+
+.actionCard:hover {
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 24px 60px rgba(37, 99, 235, 0.14);
+  transform: translateY(-4px);
+}
+
+.iconWrap {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(59, 130, 246, 0.18));
+  color: #2563eb;
+}
+
+.iconWrap svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.cardBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.cardBody h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.cardBody p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.cardButtonWrap {
+  margin-top: auto;
+}
+
+.cardButton {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  border-radius: 14px;
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #2563eb;
+  font-size: 0.95rem;
+}
+
+.cardButton:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.cardButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .welcomeCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .welcomeText {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .layout {
+    padding: 1rem;
+  }
+
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .placeholderCard,
+  .welcomeCard,
+  .actionCard {
+    border-radius: 20px;
+  }
+
+  .actionCard {
+    min-height: auto;
+  }
+}

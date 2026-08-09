@@ -1,138 +1,47 @@
-# Milestone 1 – Project Initialization, Design Process & Core Setup
+# Sports Injury Risk Detection from Video
 
-## Project Title
-Sports Injury Risk Detection from Video
+An internship project scaffold for building a sports injury risk detection platform incrementally.
 
-## Student
-Potnuri Sravani
+## Milestone 1
 
-## Milestone
-Milestone 1 – Week 1 & Week 2
+This milestone includes:
 
----
+- React frontend scaffolded with Vite
+- FastAPI backend starter application
+- React Router-based navigation
+- Login page connected to backend credential validation
+- Athlete Profile page with local state and validation placeholders
+- Clean modular folder structure for future expansion
 
-## 1. Objective
+## Project Structure
 
-The objective of Milestone 1 is to establish the foundation of the Sports Injury Risk Detection from Video platform.
+```text
+frontend/
+backend/
+datasets/
+docs/
+docker/
 
-The milestone focuses on project planning, system architecture, database design, UI workflow planning, frontend and backend setup, authentication, role-based access, athlete profile management, and collection of sports biomechanics datasets.
+## Python version and setup
 
----
+This project requires Python 3.11. MediaPipe wheels compatible with the codebase are built for Python 3.11; using Python 3.13 can cause `mediapipe` to import but not expose `mediapipe.solutions`.
 
-## 2. Tasks Completed
+Setup a Python 3.11 virtual environment (Windows):
 
-### Project Planning
-- Defined the project objectives.
-- Planned the sports injury detection workflow.
-- Identified the major components required for the platform.
+- Install Python 3.11 from https://www.python.org/downloads/release/python-311/ if not already installed.
+- From PowerShell, create and activate a venv using the 3.11 launcher:
 
-### System Architecture
-- Designed the overall system architecture.
-- Planned the frontend, backend, database, and AI processing components.
-- Designed the initial database structure.
+```powershell
+py -3.11 -m venv .venv
+. .venv\Scripts\Activate.ps1
+pip install -U pip
+pip install -r backend/requirements.txt
+```
 
-### UI and Workflow Design
-- Created the initial dashboard design.
-- Planned navigation and user workflows.
-- Designed interfaces for athlete profiles, datasets, AI analysis, and reports.
+- To verify MediaPipe is correctly installed and exposes `solutions`, run the verification script added to the project root:
 
-### Frontend and Backend Setup
-- Set up the frontend development environment.
-- Set up the backend development environment.
-- Established the initial project structure.
+```powershell
+py -3.11 verify_mediapipe.py
+```
 
-### Authentication and Role-Based Access
-Implemented/planned role-based access for:
-
-- Athlete
-- Coach
-- Physiotherapist
-- Sports Scientist
-- Administrator
-
-Authentication includes user registration, login, and role-based access control.
-
-### Athlete Profile Management
-The athlete management workflow includes:
-
-- Athlete registration
-- Sport type
-- Position
-- Age
-- Height
-- Weight
-- Injury history
-- Training load
-- Performance information
-
-### Dataset Collection
-
-The following datasets were identified for sports movement and injury analysis:
-
-1. Human3.6M Dataset
-2. MPII Human Pose Dataset
-3. COCO Keypoints Dataset
-4. SportsPose Dataset
-5. FIFA Injury Dataset (Reference)
-
----
-
-## 3. Technologies Used
-
-- Python
-- FastAPI
-- React.js
-- PostgreSQL
-- MongoDB
-- Git
-- GitHub
-
----
-
-## 4. Milestone 1 Dashboard
-
-The Milestone 1 dashboard represents the initial architecture and core setup of the platform.
-
-It includes:
-
-- Athlete profile management
-- User roles
-- Dataset management
-- AI model section
-- System setup information
-- Role-based navigation
-
-The dashboard uses **Demo / Prototype Data** for demonstration purposes.
-
----
-
-## 5. Expected Outcomes
-
-- Understand sports injury prediction workflows.
-- Learn biomechanics and movement analytics concepts.
-- Establish frontend and backend project initialization.
-- Establish authentication and role-based access.
-- Develop the athlete management workflow.
-- Identify and collect relevant sports biomechanics datasets.
-
----
-
-## 6. Milestone 1 Result
-
-Milestone 1 established the initial foundation of the Sports Injury Risk Detection from Video platform.
-
-The project architecture, UI workflow, development environment, authentication structure, athlete management workflow, and dataset preparation were completed/planned as the foundation for the next milestone.
-
----
-
-## 7. Next Milestone
-
-### Milestone 2 – Pose Estimation & Biomechanical Analysis
-
-The next stage will focus on:
-
-- Pose estimation
-- Skeleton tracking
-- Biomechanical analysis
-- Movement quality assessment
-- Biomechanics report generation
+If the verification reports `hasattr(mediapipe, 'solutions')` as `False`, reinstall Python 3.11 and the `mediapipe` wheel for your platform.

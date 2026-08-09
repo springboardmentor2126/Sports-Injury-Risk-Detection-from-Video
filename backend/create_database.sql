@@ -1,0 +1,1 @@
+CREATE DATABASE sports_injury_detection;

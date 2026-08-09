@@ -1,0 +1,79 @@
+.layout {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 1.35rem;
+}
+
+.card {
+  width: min(100%, 760px);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(191, 219, 254, 0.8);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+  padding: 1.6rem;
+}
+
+.kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--blue-600, #2563eb);
+  text-transform: uppercase;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--slate-900);
+}
+
+.description {
+  margin: 0.75rem 0 0;
+  color: var(--slate-700);
+}
+
+.statusBox {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  color: var(--slate-700);
+}
+
+.tableWrap {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.historyTable th,
+.historyTable td {
+  padding: 0.8rem 0.6rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+  text-align: left;
+}
+
+.historyTable th {
+  font-size: 0.82rem;
+  color: var(--slate-600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 640px) {
+  .layout {
+    padding: 1rem;
+  }
+
+  .card {
+    border-radius: 22px;
+    padding: 1.25rem;
+  }
+}
