@@ -1,0 +1,25 @@
+<svg viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" font-family="monospace">
+  <rect width="900" height="600" fill="#ffffff" stroke="#000" stroke-width="2"/>
+  <text x="20" y="30" font-size="14" fill="#666">WIREFRAME — Athlete Profile Page</text>
+  <rect x="0" y="50" width="900" height="50" fill="none" stroke="#000"/>
+  <text x="30" y="80" font-size="14" font-weight="bold">Sports Injury Risk</text>
+  <text x="750" y="80" font-size="12">Logged in: [Name]  |  Logout</text>
+  <rect x="40" y="130" width="820" height="430" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="70" y="165" font-size="18" font-weight="bold">Athlete Profile</text>
+  <text x="70" y="205" font-size="12">Sport Type</text>
+  <rect x="70" y="215" width="340" height="32" fill="none" stroke="#000"/>
+  <text x="450" y="205" font-size="12">Position</text>
+  <rect x="450" y="215" width="340" height="32" fill="none" stroke="#000"/>
+  <text x="70" y="270" font-size="12">Age</text>
+  <rect x="70" y="280" width="150" height="32" fill="none" stroke="#000"/>
+  <text x="240" y="270" font-size="12">Height (cm)</text>
+  <rect x="240" y="280" width="150" height="32" fill="none" stroke="#000"/>
+  <text x="410" y="270" font-size="12">Weight (kg)</text>
+  <rect x="410" y="280" width="150" height="32" fill="none" stroke="#000"/>
+  <text x="70" y="335" font-size="12">Injury History</text>
+  <rect x="70" y="345" width="720" height="60" fill="none" stroke="#000"/>
+  <text x="70" y="425" font-size="12">Training Load</text>
+  <rect x="70" y="435" width="720" height="32" fill="none" stroke="#000"/>
+  <rect x="70" y="495" width="160" height="40" fill="#000"/>
+  <text x="150" y="520" font-size="13" text-anchor="middle" fill="#fff">SAVE PROFILE</text>
+</svg>

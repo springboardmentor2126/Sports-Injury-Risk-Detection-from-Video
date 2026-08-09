@@ -1,0 +1,14 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" font-family="monospace">
+  <rect width="800" height="500" fill="#ffffff" stroke="#000" stroke-width="2"/>
+  <text x="20" y="30" font-size="14" fill="#666">WIREFRAME — Login Page</text>
+  <rect x="250" y="80" width="300" height="340" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="400" y="120" font-size="20" text-anchor="middle" font-weight="bold">Sports Injury Risk</text>
+  <text x="400" y="145" font-size="12" text-anchor="middle" fill="#666">Log in to your account</text>
+  <text x="280" y="185" font-size="12">Email</text>
+  <rect x="280" y="195" width="240" height="35" fill="none" stroke="#000"/>
+  <text x="280" y="255" font-size="12">Password</text>
+  <rect x="280" y="265" width="240" height="35" fill="none" stroke="#000"/>
+  <rect x="280" y="325" width="240" height="40" fill="#000"/>
+  <text x="400" y="350" font-size="14" text-anchor="middle" fill="#fff">LOG IN</text>
+  <text x="400" y="395" font-size="12" text-anchor="middle" fill="#666">Don't have an account? Register</text>
+</svg>

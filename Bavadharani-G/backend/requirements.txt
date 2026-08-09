@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+python-jose[cryptography]
+bcrypt
+python-multipart
+email-validator
+mediapipe
+opencv-python-headless

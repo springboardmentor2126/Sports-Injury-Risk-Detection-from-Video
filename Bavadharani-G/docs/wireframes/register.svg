@@ -1,0 +1,20 @@
+<svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg" font-family="monospace">
+  <rect width="800" height="560" fill="#ffffff" stroke="#000" stroke-width="2"/>
+  <text x="20" y="30" font-size="14" fill="#666">WIREFRAME — Register Page</text>
+  <rect x="250" y="60" width="300" height="470" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="400" y="95" font-size="20" text-anchor="middle" font-weight="bold">Create Account</text>
+  <text x="280" y="130" font-size="12">Full Name</text>
+  <rect x="280" y="140" width="240" height="32" fill="none" stroke="#000"/>
+  <text x="280" y="192" font-size="12">Email</text>
+  <rect x="280" y="202" width="240" height="32" fill="none" stroke="#000"/>
+  <text x="280" y="254" font-size="12">Password</text>
+  <rect x="280" y="264" width="240" height="32" fill="none" stroke="#000"/>
+  <text x="280" y="316" font-size="12">I am a...</text>
+  <rect x="280" y="326" width="115" height="36" fill="none" stroke="#000"/>
+  <text x="337" y="349" font-size="12" text-anchor="middle">Athlete</text>
+  <rect x="405" y="326" width="115" height="36" fill="none" stroke="#000"/>
+  <text x="462" y="349" font-size="12" text-anchor="middle">Coach</text>
+  <rect x="280" y="390" width="240" height="40" fill="#000"/>
+  <text x="400" y="415" font-size="14" text-anchor="middle" fill="#fff">CREATE ACCOUNT</text>
+  <text x="400" y="460" font-size="12" text-anchor="middle" fill="#666">Already have an account? Log in</text>
+</svg>

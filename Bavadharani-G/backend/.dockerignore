@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+sports_injury.db
+uploads/
+app/models_data/*.task
+.env
