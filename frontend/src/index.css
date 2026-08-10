@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@import "@fontsource/space-grotesk/500.css";
+@import "@fontsource/space-grotesk/600.css";
+@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+
+/*
+  Design tokens — Sports Injury Risk Detection
+  --------------------------------------------
+  Dark "control room" base (not pure black) so the risk-status colors,
+  which are functional signals from the project spec's own Risk Categories
+  (Low / Moderate / High / Critical), are what actually reads as color on
+  the page — not decoration layered on top.
+*/
+@theme {
+  --font-display: "Space Grotesk", ui-sans-serif, sans-serif;
+  --font-body: "Inter", ui-sans-serif, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-track-slate: #12161c;
+  --color-court-graphite: #1b212b;
+  --color-court-graphite-light: #232a36;
+  --color-line: #2a3140;
+  --color-pulse-cyan: #2dd4bf;
+  --color-text-primary: #e8ecf1;
+  --color-text-muted: #8b94a3;
+
+  --color-risk-low: #4ade80;
+  --color-risk-moderate: #fbbf24;
+  --color-risk-high: #fb7185;
+  --color-risk-critical: #dc2626;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-track-slate);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+/* visible keyboard focus everywhere, per accessibility floor */
+:focus-visible {
+  outline: 2px solid var(--color-pulse-cyan);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

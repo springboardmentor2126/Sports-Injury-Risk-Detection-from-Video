@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+opencv-python
+mediapipe
+numpy
+pandas
+scikit-learn
+xgboost
+sqlalchemy
+psycopg2-binary
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt==4.0.1
+python-multipart
+python-dotenv
+email-validator
