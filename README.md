@@ -55,18 +55,17 @@ compute biomechanical metrics, and (eventually) predict injury risk.
   clinical reading — from a single arbitrary-angle 2D video it's directional
   only
 
-## ⏳ Milestone 3 — Injury Risk Prediction & Recommendations (NOT STARTED)
+## ✅ Milestone 3 — Injury Risk Prediction & Recommendations (COMPLETE)
 
-- ⬜ Injury risk prediction engine (combine biomechanics + training load +
+- ✅ Injury risk prediction engine (combine biomechanics +
   injury history into an actual risk score)
-- ⬜ Risk scoring (Low / Moderate / High / Critical)
-- ⬜ Movement anomaly detection
-- ⬜ Corrective recommendation engine
-- ⬜ Athlete intelligence dashboards — the Dashboard's "Injury risk score"
-  widget currently shows "no data yet" on purpose; it's wired up and ready,
-  just waiting on this engine
+- ✅ Risk scoring (Low / Moderate / High / Critical)
+- ✅ Movement anomaly detection
+- ✅ Corrective recommendation engine
+- ✅ Athlete intelligence dashboards — the Dashboard's "Injury risk score"
+ 
 
-## ⏳ Milestone 4 — Analytics, Testing & Deployment (NOT STARTED)
+## ⏳ Milestone 4 — Analytics, Testing & Deployment 
 
 - ⬜ Executive dashboards, reports & PDF/Excel export ("Reports History" is
   currently a placeholder for this)
