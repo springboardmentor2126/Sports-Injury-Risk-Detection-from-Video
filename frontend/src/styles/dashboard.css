@@ -1,0 +1,289 @@
+/* ---------- Dashboard ---------- */
+
+.dashboard{
+    max-width:1300px;
+    margin:35px auto;
+    padding:0 25px;
+}
+
+/* ---------- Hero Section ---------- */
+
+.hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    background:#ffffff;
+
+    border-radius:20px;
+
+    padding:40px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    margin-bottom:30px;
+}
+
+.hero h1{
+
+    font-size:38px;
+
+    margin-bottom:15px;
+
+    color:#1e293b;
+
+}
+
+.hero p{
+
+    font-size:18px;
+
+    color:#64748b;
+
+    max-width:600px;
+
+    line-height:1.6;
+
+}
+
+.hero h3{
+
+    margin-top:20px;
+
+    color:#475569;
+
+}
+
+.hero span{
+
+    color:#2563eb;
+
+    font-weight:700;
+
+}
+
+.profile-icon{
+
+    font-size:90px;
+
+    color:#2563eb;
+
+}
+
+/* ---------- Statistics ---------- */
+
+.stats{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:25px;
+
+    margin-bottom:35px;
+
+}
+
+.stat-card{
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:30px;
+
+    text-align:center;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+
+}
+
+.stat-card h2{
+
+    font-size:42px;
+
+    color:#2563eb;
+
+    margin-bottom:10px;
+
+}
+
+.stat-card p{
+
+    color:#64748b;
+
+}
+
+/* ---------- Middle Section ---------- */
+
+.middle-section{
+
+    display:grid;
+
+    grid-template-columns:2fr 1fr;
+
+    gap:30px;
+
+    margin-bottom:35px;
+
+}
+
+.upload-card,
+.tips-card,
+.recent-card{
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:35px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+
+}
+
+.upload-card h2,
+.tips-card h2,
+.recent-card h2{
+
+    margin-bottom:15px;
+
+    color:#1e293b;
+
+}
+
+.upload-card p{
+
+    color:#64748b;
+
+    margin-bottom:25px;
+
+}
+
+/* ---------- Tips ---------- */
+
+.tips-card ul{
+
+    padding-left:20px;
+
+}
+
+.tips-card li{
+
+    margin-bottom:18px;
+
+    color:#475569;
+
+    font-size:16px;
+
+}
+
+/* ---------- Table ---------- */
+
+.recent-card table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    margin-top:20px;
+
+}
+
+.recent-card th{
+
+    text-align:left;
+
+    padding:18px;
+
+    background:#f8fafc;
+
+    color:#334155;
+
+}
+
+.recent-card td{
+
+    padding:18px;
+
+    border-bottom:1px solid #e2e8f0;
+
+}
+
+/* ---------- Responsive ---------- */
+
+@media(max-width:900px){
+
+.hero{
+
+    flex-direction:column;
+
+    text-align:center;
+
+}
+
+.stats{
+
+    grid-template-columns:1fr;
+
+}
+
+.middle-section{
+
+    grid-template-columns:1fr;
+
+}
+
+}
+
+/* ---------- Upload ---------- */
+
+.upload-box{
+
+    border:2px dashed #2563eb;
+
+    border-radius:18px;
+
+    padding:45px;
+
+    text-align:center;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.upload-box:hover{
+
+    background:#eff6ff;
+
+}
+
+.upload-box h3{
+
+    margin-top:15px;
+
+    color:#1e293b;
+
+}
+
+.upload-box p{
+
+    color:#64748b;
+
+}
+
+.upload-status{
+
+    margin-top:25px;
+
+    background:#f8fafc;
+
+    padding:18px;
+
+    border-radius:12px;
+
+    text-align:center;
+
+}
