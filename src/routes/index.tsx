@@ -2,14 +2,7 @@ import { createFileRoute, Link as RouterLink } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -27,6 +20,11 @@ import {
   TrendingUp,
   Upload,
   X,
+  Send,
+  MessageSquare,
+  Scale,
+  Zap,
+  Apple,
 } from "lucide-react";
 import {
   Radar,
@@ -36,14 +34,16 @@ import {
   PolarRadiusAxis,
   ResponsiveContainer,
   Legend as RechartsLegend,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
 } from "recharts";
 import jsPDF from "jspdf";
 import { toast, Toaster } from "sonner";
-import {
-  analyzePose,
-  type AnalysisJoint,
-  type AnalysisResult,
-} from "@/lib/analyze.functions";
+import { analyzePose, chatWithCoach, type AnalysisJoint, type AnalysisResult } from "@/lib/analyze.functions";
 import {
   deleteAnalysis,
   loadHistory,
@@ -57,15 +57,32 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "KinetIQ — AI Sports Injury & Performance Analysis" },
-      { name: "description", content: "Upload a sports clip. Get instant AI injury risk, posture score, joint heatmaps, risky-moment timeline, and side-by-side comparisons." },
+      {
+        name: "description",
+        content:
+          "Upload a sports clip. Get instant AI injury risk, posture score, joint heatmaps, risky-moment timeline, and side-by-side comparisons.",
+      },
       { property: "og:title", content: "KinetIQ — AI Sports Injury & Performance Analysis" },
-      { property: "og:description", content: "Upload a sports clip. Get instant AI injury risk, posture score, joint heatmaps, risky-moment timeline, and side-by-side comparisons." },
+      {
+        property: "og:description",
+        content:
+          "Upload a sports clip. Get instant AI injury risk, posture score, joint heatmaps, risky-moment timeline, and side-by-side comparisons.",
+      },
     ],
   }),
   component: Index,
 });
 
-const SPORTS = ["General / Auto-detect", "Running / Sprinting", "Cricket – Batting", "Cricket – Bowling", "Football / Soccer", "Basketball", "Tennis", "Weightlifting"];
+const SPORTS = [
+  "General / Auto-detect",
+  "Running / Sprinting",
+  "Cricket – Batting",
+  "Cricket – Bowling",
+  "Football / Soccer",
+  "Basketball",
+  "Tennis",
+  "Weightlifting",
+];
 
 const SKELETON_CONNECTIONS = [
   ["head", "neck"],
@@ -101,30 +118,33 @@ type ExtractedFrame = {
 let poseLandmarkerInstance: any = null;
 const getPoseLandmarker = async () => {
   if (poseLandmarkerInstance) return poseLandmarkerInstance;
-  const visionModule = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs" as any);
+  const visionModule = await import(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs" as any
+  );
   const vision = await visionModule.FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm",
   );
   poseLandmarkerInstance = await visionModule.PoseLandmarker.createFromOptions(vision, {
     baseOptions: {
-      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
-      delegate: "GPU"
+      modelAssetPath:
+        "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+      delegate: "GPU",
     },
-    runningMode: "IMAGE"
+    runningMode: "IMAGE",
   });
   return poseLandmarkerInstance;
 };
 
 const mapMediaPipeToKinetIQ = (landmarks: any[]) => {
   if (!landmarks || landmarks.length === 0) return undefined;
-  const getConf = (lm: any) => lm.visibility !== undefined ? lm.visibility : (lm.presence || 1.0);
-  
+  const getConf = (lm: any) => (lm.visibility !== undefined ? lm.visibility : lm.presence || 1.0);
+
   const neck = {
     x: (landmarks[11].x + landmarks[12].x) / 2,
     y: (landmarks[11].y + landmarks[12].y) / 2,
     confidence: (getConf(landmarks[11]) + getConf(landmarks[12])) / 2,
   };
-  
+
   return {
     head: { x: landmarks[0].x, y: landmarks[0].y, confidence: getConf(landmarks[0]) },
     neck: { x: neck.x, y: neck.y, confidence: neck.confidence },
@@ -143,6 +163,26 @@ const mapMediaPipeToKinetIQ = (landmarks: any[]) => {
   };
 };
 
+const calculateAngle = (
+  a?: { x: number; y: number },
+  b?: { x: number; y: number },
+  c?: { x: number; y: number }
+): number | null => {
+  if (!a || !b || !c) return null;
+  const vectorBA = { x: a.x - b.x, y: a.y - b.y };
+  const vectorBC = { x: c.x - b.x, y: c.y - b.y };
+
+  const dotProduct = vectorBA.x * vectorBC.x + vectorBA.y * vectorBC.y;
+  const magBA = Math.sqrt(vectorBA.x * vectorBA.x + vectorBA.y * vectorBA.y);
+  const magBC = Math.sqrt(vectorBC.x * vectorBC.x + vectorBC.y * vectorBC.y);
+
+  if (magBA === 0 || magBC === 0) return null;
+
+  const cosTheta = dotProduct / (magBA * magBC);
+  const angleRad = Math.acos(Math.max(-1, Math.min(1, cosTheta)));
+  return Math.round((angleRad * 180) / Math.PI);
+};
+
 function Index() {
   const analyze = useServerFn(analyzePose);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -152,7 +192,7 @@ function Index() {
   const [duration, setDuration] = useState<number>(0);
   const [sport, setSport] = useState(SPORTS[0]);
   const [notes, setNotes] = useState("");
-  const [selectedModel, setSelectedModel] = useState<string>("ensemble");
+  const [selectedModel, setSelectedModel] = useState<string>("gemini-3.5-flash");
   const [granularity, setGranularity] = useState<Granularity>("medium");
   const [frames, setFrames] = useState<ExtractedFrame[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -228,7 +268,10 @@ function Index() {
       } catch (e) {
         console.warn("history save failed", e);
       }
-      setTimeout(() => document.getElementById("report")?.scrollIntoView({ behavior: "smooth" }), 50);
+      setTimeout(
+        () => document.getElementById("report")?.scrollIntoView({ behavior: "smooth" }),
+        50,
+      );
     },
     onError: (e: Error) => toast.error(e.message || "Analysis failed"),
   });
@@ -309,10 +352,11 @@ function Index() {
             resolve();
           }, 800);
         });
-        
+
         ctx.drawImage(video, 0, 0, w, h);
 
-        let joints: Record<string, { x: number; y: number; confidence: number }> | undefined = undefined;
+        let joints: Record<string, { x: number; y: number; confidence: number }> | undefined =
+          undefined;
         if (landmarker) {
           try {
             smallCtx.drawImage(video, 0, 0, smallW, smallH);
@@ -332,7 +376,9 @@ function Index() {
         });
       }
       setFrames(captured);
-      toast.success(`Extracted ${captured.length} keyframes (Precision skeletal tracking complete)`);
+      toast.success(
+        `Extracted ${captured.length} keyframes (Precision skeletal tracking complete)`,
+      );
       return captured;
     } catch (e) {
       console.error(e);
@@ -398,10 +444,14 @@ function Index() {
         <section className="mt-10 grid gap-6 lg:grid-cols-5">
           <div className="lg:col-span-3 rounded-2xl glass-card p-6 shadow-lg hover:border-primary/20 transition-all duration-300">
             <h2 className="text-xl font-bold flex items-center gap-2">
-              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">
+                1
+              </span>
               Upload your clip
             </h2>
-            <p className="text-sm text-on-surface-variant mt-1">MP4, MOV, AVI, or WebM up to 80MB.</p>
+            <p className="text-sm text-on-surface-variant mt-1">
+              MP4, MOV, AVI, or WebM up to 80MB.
+            </p>
 
             <label
               htmlFor="video-input"
@@ -419,7 +469,9 @@ function Index() {
                 <FileVideo className="w-7 h-7 text-primary" />
               </div>
               <div>
-                <p className="font-semibold text-on-surface">{file ? file.name : "Drag & drop video file, or browse"}</p>
+                <p className="font-semibold text-on-surface">
+                  {file ? file.name : "Drag & drop video file, or browse"}
+                </p>
                 <p className="text-xs text-on-surface-variant mt-1">
                   {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : "MP4, MOV, or AVI"}
                 </p>
@@ -463,12 +515,17 @@ function Index() {
                     >
                       <img src={f.dataUrl} alt={`frame ${i}`} className="w-full h-auto block" />
                       {f.joints && (
-                        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1 1" preserveAspectRatio="none">
+                        <svg
+                          className="absolute inset-0 w-full h-full pointer-events-none"
+                          viewBox="0 0 1 1"
+                          preserveAspectRatio="none"
+                        >
                           {/* Draw connections */}
                           {SKELETON_CONNECTIONS.map(([p1, p2], idx) => {
                             const pt1 = f.joints?.[p1];
                             const pt2 = f.joints?.[p2];
-                            if (!pt1 || !pt2 || pt1.confidence < 0.2 || pt2.confidence < 0.2) return null;
+                            if (!pt1 || !pt2 || pt1.confidence < 0.2 || pt2.confidence < 0.2)
+                              return null;
                             return (
                               <line
                                 key={idx}
@@ -510,28 +567,35 @@ function Index() {
 
           <div className="lg:col-span-2 rounded-2xl glass-card p-6 shadow-lg hover:border-primary/20 transition-all duration-300">
             <h2 className="text-xl font-bold flex items-center gap-2">
-              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">
+                2
+              </span>
               Settings & analyze
             </h2>
 
-            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">Sport / Movement Type</label>
+            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">
+              Sport / Movement Type
+            </label>
             <select
               value={sport}
               onChange={(e) => setSport(e.target.value)}
               className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:border-primary/60 transition-colors text-on-surface text-sm appearance-none"
             >
               {SPORTS.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
 
-            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">AI Analysis Model</label>
+            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">
+              AI Analysis Model
+            </label>
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
               className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:border-primary/60 transition-colors text-on-surface text-sm appearance-none"
             >
-              <option value="ensemble">Multi-Model Ensemble (Consensus)</option>
               <option value="gemini-3.5-flash">Gemini 3.5 Flash (Fastest / Low cost)</option>
               <option value="gemini-3.5-pro">Gemini 3.5 Pro (Deep reasoning)</option>
               <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fastest / Advanced)</option>
@@ -539,12 +603,17 @@ function Index() {
               <option value="llama3.2-vision">Llama 3.2 Vision (Ollama Cloud)</option>
             </select>
 
-            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">Analysis granularity</label>
+            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">
+              Analysis granularity
+            </label>
             <div className="grid grid-cols-3 gap-2">
               {(Object.keys(GRANULARITY) as Granularity[]).map((g) => (
                 <button
                   key={g}
-                  onClick={() => { setGranularity(g); setFrames([]); }}
+                  onClick={() => {
+                    setGranularity(g);
+                    setFrames([]);
+                  }}
                   className={cn(
                     "rounded-lg border px-2 py-3 text-left transition-all duration-200 flex flex-col justify-between min-h-[68px]",
                     granularity === g
@@ -552,13 +621,17 @@ function Index() {
                       : "border-outline-variant bg-surface-container/50 hover:border-primary/40 text-on-surface-variant",
                   )}
                 >
-                  <p className="text-xs font-bold uppercase tracking-wider">{GRANULARITY[g].label}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider">
+                    {GRANULARITY[g].label}
+                  </p>
                   <p className="text-[9px] font-mono opacity-80 mt-1">{GRANULARITY[g].sub}</p>
                 </button>
               ))}
             </div>
 
-            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">Coach notes (optional)</label>
+            <label className="block mt-6 text-sm font-semibold text-on-surface-variant mb-2">
+              Coach notes (optional)
+            </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -573,7 +646,11 @@ function Index() {
                 onClick={() => extractFrames()}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-outline bg-surface-container-highest px-4 py-2.5 text-sm font-medium hover:border-primary/40 hover:text-primary transition-all duration-200 disabled:opacity-50 disabled:hover:text-inherit"
               >
-                {extracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                {extracting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
                 Extract {GRANULARITY[granularity].count} keyframes
               </button>
             </div>
@@ -589,11 +666,15 @@ function Index() {
           >
             <span className="relative z-10 flex items-center gap-3">
               {mutation.isPending ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Analyzing with AI…</>
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" /> Analyzing with AI…
+                </>
               ) : (
                 <>
                   Run AI analysis
-                  <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">→</span>
+                  <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
                 </>
               )}
             </span>
@@ -610,7 +691,9 @@ function Index() {
           compareWith={compareWith}
           onCompare={(h) => {
             setCompareWith((cur) => (cur?.id === h.id ? null : h));
-            toast.message(compareWith?.id === h.id ? "Comparison cleared" : `Comparing with: ${h.label}`);
+            toast.message(
+              compareWith?.id === h.id ? "Comparison cleared" : `Comparing with: ${h.label}`,
+            );
           }}
           onDelete={(id) => {
             setHistory(deleteAnalysis(id));
@@ -643,31 +726,52 @@ function Header() {
   const [email, setEmail] = useState<string | null>(null);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setEmail(s?.user.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) =>
+      setEmail(s?.user.email ?? null),
+    );
     return () => sub.subscription.unsubscribe();
   }, []);
   return (
     <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-xl border-b border-primary/10 shadow-[0_0_30px_rgba(125,211,252,0.05)]">
       <nav className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
-        <RouterLink to="/" className="text-2xl font-headline font-semibold tracking-tight text-on-surface flex items-center gap-2">
+        <RouterLink
+          to="/"
+          className="text-2xl font-headline font-semibold tracking-tight text-on-surface flex items-center gap-2"
+        >
           <Activity className="h-6 w-6 text-primary" />
           <span>KinetIQ</span>
         </RouterLink>
         <div className="hidden md:flex items-center gap-8 font-body text-sm font-medium">
-          <a className="text-on-surface-variant hover:text-on-surface transition-all duration-300" href="#how">How It Works</a>
-          <RouterLink className="text-primary border-b-2 border-primary pb-1" to="/">Analysis</RouterLink>
+          <a
+            className="text-on-surface-variant hover:text-on-surface transition-all duration-300"
+            href="#how"
+          >
+            How It Works
+          </a>
+          <RouterLink className="text-primary border-b-2 border-primary pb-1" to="/">
+            Analysis
+          </RouterLink>
         </div>
         <div className="flex items-center gap-4">
           {email ? (
-            <RouterLink to="/profile" className="px-5 py-2 rounded-lg bg-primary/20 border border-primary/30 text-primary font-medium hover:bg-primary/30 transition-all duration-300 active:scale-95 text-sm">
+            <RouterLink
+              to="/profile"
+              className="px-5 py-2 rounded-lg bg-primary/20 border border-primary/30 text-primary font-medium hover:bg-primary/30 transition-all duration-300 active:scale-95 text-sm"
+            >
               <span className="max-w-[140px] truncate">{email}</span>
             </RouterLink>
           ) : (
             <>
-              <RouterLink to="/auth" className="px-5 py-2 rounded-lg font-medium text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all duration-300 active:scale-95 text-sm">
+              <RouterLink
+                to="/auth"
+                className="px-5 py-2 rounded-lg font-medium text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all duration-300 active:scale-95 text-sm"
+              >
                 Login
               </RouterLink>
-              <RouterLink to="/auth" className="px-5 py-2 rounded-lg bg-primary/20 border border-primary/30 text-primary font-medium hover:bg-primary/30 transition-all duration-300 active:scale-95 text-sm">
+              <RouterLink
+                to="/auth"
+                className="px-5 py-2 rounded-lg bg-primary/20 border border-primary/30 text-primary font-medium hover:bg-primary/30 transition-all duration-300 active:scale-95 text-sm"
+              >
                 Get Started
               </RouterLink>
             </>
@@ -690,7 +794,9 @@ function Hero() {
         See the injury <span className="text-primary italic text-glow">before</span> it happens.
       </h1>
       <p className="mt-4 mx-auto max-w-2xl text-muted-foreground text-balance">
-        Upload your performance clips and let KinetIQ’s proprietary AI extract joint angles, torque loads, and fatigue markers in seconds. Transform video into clinical-grade biomechanical data.
+        Upload your performance clips and let KinetIQ’s proprietary AI extract joint angles, torque
+        loads, and fatigue markers in seconds. Transform video into clinical-grade biomechanical
+        data.
       </p>
     </section>
   );
@@ -701,26 +807,53 @@ function AnalyzingSkeleton() {
     <section className="mt-10 rounded-2xl border border-primary/20 bg-primary/5 p-10 text-center backdrop-blur-md">
       <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
       <p className="mt-4 font-medium text-primary">AI coach is reviewing your clip…</p>
-      <p className="text-sm text-muted-foreground mt-1">Estimating joint angles, stress, and risky moments.</p>
+      <p className="text-sm text-muted-foreground mt-1">
+        Estimating joint angles, stress, and risky moments.
+      </p>
     </section>
   );
 }
 
 function HowItWorks() {
   const steps = [
-    { i: "1", t: "Upload your clip", d: "Drag & drop video file. MP4, MOV, or AVI works best.", Icon: Upload },
-    { i: "2", t: "Settings & analyze", d: "Choose movement type, granularity, and notes.", Icon: Play },
-    { i: "3", t: "AI Vision analysis", d: "Extract joint angles, torque load, and risk factors.", Icon: Sparkles },
-    { i: "4", t: "Compare & export", d: "Compare with previous runs or download PDF.", Icon: GitCompareArrows },
+    {
+      i: "1",
+      t: "Upload your clip",
+      d: "Drag & drop video file. MP4, MOV, or AVI works best.",
+      Icon: Upload,
+    },
+    {
+      i: "2",
+      t: "Settings & analyze",
+      d: "Choose movement type, granularity, and notes.",
+      Icon: Play,
+    },
+    {
+      i: "3",
+      t: "AI Vision analysis",
+      d: "Extract joint angles, torque load, and risk factors.",
+      Icon: Sparkles,
+    },
+    {
+      i: "4",
+      t: "Compare & export",
+      d: "Compare with previous runs or download PDF.",
+      Icon: GitCompareArrows,
+    },
   ];
   return (
     <section id="how" className="mt-16">
       <h2 className="text-2xl font-bold mb-6">How it works</h2>
       <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {steps.map((s) => (
-          <div key={s.i} className="rounded-2xl border border-primary/10 bg-surface/40 backdrop-blur-md p-5 transition hover:border-primary/30">
+          <div
+            key={s.i}
+            className="rounded-2xl border border-primary/10 bg-surface/40 backdrop-blur-md p-5 transition hover:border-primary/30"
+          >
             <div className="flex items-center justify-between">
-              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">{s.i}</span>
+              <span className="bg-primary/20 text-primary w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">
+                {s.i}
+              </span>
               <s.Icon className="w-4 h-4 text-muted-foreground" />
             </div>
             <p className="mt-4 font-semibold">{s.t}</p>
@@ -755,6 +888,19 @@ function HistoryPanel({
   onDelete: (id: string) => void;
 }) {
   if (history.length === 0) return null;
+
+  const trendData = useMemo(() => {
+    return [...history]
+      .reverse()
+      .map((h) => ({
+        date: new Date(h.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        "Posture": h.result.postureScore,
+        "Performance": h.result.performanceScore,
+        "Symmetry": h.result.symmetryIndex !== undefined ? h.result.symmetryIndex : 90,
+        "Injury Risk": h.result.overallRiskPercent,
+      }));
+  }, [history]);
+
   return (
     <section className="mt-8 rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center justify-between">
@@ -795,7 +941,12 @@ function HistoryPanel({
                 <div className="p-2">
                   <p className="text-xs font-semibold truncate">{h.label}</p>
                   <div className="flex items-center justify-between mt-1">
-                    <span className={cn("text-[10px] font-mono px-1.5 py-0.5 rounded border", riskColor(h.result.overallRiskLevel))}>
+                    <span
+                      className={cn(
+                        "text-[10px] font-mono px-1.5 py-0.5 rounded border",
+                        riskColor(h.result.overallRiskLevel),
+                      )}
+                    >
                       {h.result.overallRiskPercent}%
                     </span>
                     <span className="text-[10px] text-muted-foreground font-mono">
@@ -817,6 +968,32 @@ function HistoryPanel({
           );
         })}
       </div>
+
+      {history.length > 1 && (
+        <div className="mt-8 pt-6 border-t border-border">
+          <h3 className="font-semibold text-sm flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" /> Athlete Progress Trends
+          </h3>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            Tracking performance improvement and injury risk reduction across successive analysis sessions.
+          </p>
+          <div className="h-56 mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} />
+                <YAxis domain={[0, 100]} stroke="rgba(255,255,255,0.4)" fontSize={10} />
+                <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(20,20,25,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} labelClassName="text-white text-xs" />
+                <RechartsLegend verticalAlign="top" height={32} iconType="circle" wrapperStyle={{ fontSize: 10 }} />
+                <Line type="monotone" dataKey="Posture" stroke="oklch(0.65 0.25 260)" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="Performance" stroke="oklch(0.7 0.2 130)" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="Symmetry" stroke="oklch(0.6 0.18 190)" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="Injury Risk" stroke="oklch(0.65 0.25 350)" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -834,11 +1011,13 @@ function HeatmapFrame({
   joints,
   time,
   onClick,
+  showAngles = false,
 }: {
   frameUrl: string;
   joints: AnalysisJoint[];
   time: number;
   onClick?: () => void;
+  showAngles?: boolean;
 }) {
   const imgRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -855,6 +1034,39 @@ function HeatmapFrame({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.clearRect(0, 0, w, h);
+
+    // Map joints to coordinate object for easier reference
+    const jointsObj = Object.fromEntries(joints.map((j) => [j.name, { x: j.x, y: j.y }]));
+
+    if (showAngles) {
+      // draw skeleton lines
+      const HEATMAP_CONNECTIONS = [
+        ["leftShoulder", "leftElbow"],
+        ["leftElbow", "leftWrist"],
+        ["rightShoulder", "rightElbow"],
+        ["rightElbow", "rightWrist"],
+        ["leftShoulder", "leftHip"],
+        ["rightShoulder", "rightHip"],
+        ["leftHip", "rightHip"],
+        ["leftHip", "leftKnee"],
+        ["leftKnee", "leftAnkle"],
+        ["rightHip", "rightKnee"],
+        ["rightKnee", "rightAnkle"],
+      ];
+
+      for (const [p1, p2] of HEATMAP_CONNECTIONS) {
+        const pt1 = jointsObj[p1];
+        const pt2 = jointsObj[p2];
+        if (pt1 && pt2) {
+          ctx.beginPath();
+          ctx.moveTo(pt1.x * w, pt1.y * h);
+          ctx.lineTo(pt2.x * w, pt2.y * h);
+          ctx.strokeStyle = "rgba(14, 165, 233, 0.4)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      }
+    }
 
     // joint heat blobs
     const radius = Math.max(w, h) * 0.11;
@@ -884,7 +1096,31 @@ function HeatmapFrame({
       ctx.lineWidth = 2;
       ctx.stroke();
     }
-  }, [joints]);
+
+    if (showAngles) {
+      const angles = [
+        { name: "leftKnee", val: calculateAngle(jointsObj.leftHip, jointsObj.leftKnee, jointsObj.leftAnkle) },
+        { name: "rightKnee", val: calculateAngle(jointsObj.rightHip, jointsObj.rightKnee, jointsObj.rightAnkle) },
+        { name: "leftHip", val: calculateAngle(jointsObj.leftShoulder, jointsObj.leftHip, jointsObj.leftKnee) },
+        { name: "rightHip", val: calculateAngle(jointsObj.rightShoulder, jointsObj.rightHip, jointsObj.rightKnee) },
+        { name: "leftElbow", val: calculateAngle(jointsObj.leftShoulder, jointsObj.leftElbow, jointsObj.leftWrist) },
+        { name: "rightElbow", val: calculateAngle(jointsObj.rightShoulder, jointsObj.rightElbow, jointsObj.rightWrist) },
+      ];
+      for (const a of angles) {
+        if (a.val !== null) {
+          const j = jointsObj[a.name];
+          if (j) {
+            ctx.font = "bold 9px monospace";
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = 3;
+            ctx.fillText(`${a.val}°`, j.x * w + 5, j.y * h - 2);
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+    }
+  }, [joints, showAngles]);
 
   useLayoutEffect(() => {
     draw();
@@ -901,13 +1137,7 @@ function HeatmapFrame({
       className="relative block w-full rounded-lg overflow-hidden border border-border bg-black group"
       title={`Seek to ${time.toFixed(2)}s`}
     >
-      <img
-        ref={imgRef}
-        src={frameUrl}
-        onLoad={draw}
-        alt=""
-        className="w-full h-auto block"
-      />
+      <img ref={imgRef} src={frameUrl} onLoad={draw} alt="" className="w-full h-auto block" />
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 w-full h-full" />
       <span className="absolute bottom-1 left-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/70 text-white">
         {time.toFixed(2)}s
@@ -919,6 +1149,96 @@ function HeatmapFrame({
         max {Math.round(maxStress * 100)}
       </span>
     </button>
+  );
+}
+
+function AnnotatedHeatmapFrame({
+  frameUrl,
+  joints,
+  time,
+  frameIndex,
+  showAngles,
+  onSeek,
+  note,
+  onSaveNote,
+}: {
+  frameUrl: string;
+  joints: AnalysisJoint[];
+  time: number;
+  frameIndex: number;
+  showAngles: boolean;
+  onSeek: (t: number) => void;
+  note: string;
+  onSaveNote: (frameIndex: number, text: string) => void;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempNote, setTempNote] = useState(note);
+
+  useEffect(() => {
+    setTempNote(note);
+  }, [note]);
+
+  return (
+    <div className="space-y-2">
+      <HeatmapFrame
+        frameUrl={frameUrl}
+        joints={joints}
+        time={time}
+        showAngles={showAngles}
+        onClick={() => onSeek(time)}
+      />
+      <div className="bg-background/80 rounded-lg p-2 border border-border text-xs">
+        {isEditing ? (
+          <div className="space-y-1">
+            <textarea
+              value={tempNote}
+              onChange={(e) => setTempNote(e.target.value)}
+              placeholder="Add coach feedback..."
+              className="w-full h-12 bg-card border border-border rounded px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-primary text-[10px] resize-none"
+            />
+            <div className="flex justify-end gap-1">
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="px-2 py-0.5 rounded bg-muted hover:bg-muted/80 text-[9px]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onSaveNote(frameIndex, tempNote);
+                  setIsEditing(false);
+                }}
+                className="px-2 py-0.5 rounded bg-primary text-primary-foreground hover:opacity-90 text-[9px] font-semibold"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            {note ? (
+              <p className="italic text-foreground/90 font-mono text-[10px] leading-snug">
+                ✍️ Coach: "{note}"
+              </p>
+            ) : (
+              <p className="text-muted-foreground italic text-[9px]">No frame notes</p>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setTempNote(note);
+                setIsEditing(true);
+              }}
+              className="mt-1 text-primary hover:underline text-[9px] block font-medium"
+            >
+              {note ? "Edit note" : "+ Add coach note"}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -980,11 +1300,21 @@ function RiskyTimeline({
               style={{ left }}
               title={`${m.label} @ ${m.timeSec.toFixed(2)}s`}
             >
-              <span className={cn("text-[10px] font-mono px-1.5 py-0.5 rounded border bg-card", riskColor(m.severity))}>
+              <span
+                className={cn(
+                  "text-[10px] font-mono px-1.5 py-0.5 rounded border bg-card",
+                  riskColor(m.severity),
+                )}
+              >
                 {m.timeSec.toFixed(1)}s
               </span>
               <span className="w-px h-6 bg-border" />
-              <span className={cn("w-3.5 h-3.5 rounded-full ring-2 ring-background", riskDot(m.severity))} />
+              <span
+                className={cn(
+                  "w-3.5 h-3.5 rounded-full ring-2 ring-background",
+                  riskDot(m.severity),
+                )}
+              />
             </button>
           );
         })}
@@ -1005,10 +1335,16 @@ function RiskyTimeline({
 
       <ul className="mt-4 space-y-2">
         {moments.map((m, i) => (
-          <li key={i} className="rounded-lg border border-border bg-background/60 p-3 flex items-start gap-3">
+          <li
+            key={i}
+            className="rounded-lg border border-border bg-background/60 p-3 flex items-start gap-3"
+          >
             <button
               onClick={() => onSeek(m.timeSec)}
-              className={cn("shrink-0 mt-0.5 inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-mono hover:bg-secondary", riskColor(m.severity))}
+              className={cn(
+                "shrink-0 mt-0.5 inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-mono hover:bg-secondary",
+                riskColor(m.severity),
+              )}
             >
               <Play className="w-3 h-3" /> {m.timeSec.toFixed(2)}s
             </button>
@@ -1018,7 +1354,9 @@ function RiskyTimeline({
             </div>
           </li>
         ))}
-        {moments.length === 0 && <li className="text-sm text-muted-foreground">No risky moments flagged.</li>}
+        {moments.length === 0 && (
+          <li className="text-sm text-muted-foreground">No risky moments flagged.</li>
+        )}
       </ul>
     </div>
   );
@@ -1026,32 +1364,81 @@ function RiskyTimeline({
 
 /* ---------- Comparison ---------- */
 
-function Comparison({
-  current,
-  baseline,
-}: {
-  current: AnalysisResult;
-  baseline: SavedAnalysis;
-}) {
+function Comparison({ current, baseline }: { current: AnalysisResult; baseline: SavedAnalysis }) {
   const radarData = useMemo(
     () => [
-      { axis: "Stability", current: current.scores.movementStability, baseline: baseline.result.scores.movementStability },
-      { axis: "Alignment", current: current.scores.jointAlignment, baseline: baseline.result.scores.jointAlignment },
-      { axis: "Landing", current: current.scores.landingTechnique, baseline: baseline.result.scores.landingTechnique },
-      { axis: "Balance", current: current.scores.balance, baseline: baseline.result.scores.balance },
-      { axis: "Fatigue", current: current.scores.fatigueIndicator, baseline: baseline.result.scores.fatigueIndicator },
+      {
+        axis: "Stability",
+        current: current.scores.movementStability,
+        baseline: baseline.result.scores.movementStability,
+      },
+      {
+        axis: "Alignment",
+        current: current.scores.jointAlignment,
+        baseline: baseline.result.scores.jointAlignment,
+      },
+      {
+        axis: "Landing",
+        current: current.scores.landingTechnique,
+        baseline: baseline.result.scores.landingTechnique,
+      },
+      {
+        axis: "Balance",
+        current: current.scores.balance,
+        baseline: baseline.result.scores.balance,
+      },
+      {
+        axis: "Fatigue",
+        current: current.scores.fatigueIndicator,
+        baseline: baseline.result.scores.fatigueIndicator,
+      },
     ],
     [current, baseline],
   );
 
   const rows: { label: string; cur: number; base: number; better: "higher" | "lower" }[] = [
-    { label: "Overall risk", cur: current.overallRiskPercent, base: baseline.result.overallRiskPercent, better: "lower" },
-    { label: "Posture", cur: current.postureScore, base: baseline.result.postureScore, better: "higher" },
-    { label: "Performance", cur: current.performanceScore, base: baseline.result.performanceScore, better: "higher" },
-    { label: "Stability", cur: current.scores.movementStability, base: baseline.result.scores.movementStability, better: "higher" },
-    { label: "Alignment", cur: current.scores.jointAlignment, base: baseline.result.scores.jointAlignment, better: "higher" },
-    { label: "Landing", cur: current.scores.landingTechnique, base: baseline.result.scores.landingTechnique, better: "higher" },
-    { label: "Balance", cur: current.scores.balance, base: baseline.result.scores.balance, better: "higher" },
+    {
+      label: "Overall risk",
+      cur: current.overallRiskPercent,
+      base: baseline.result.overallRiskPercent,
+      better: "lower",
+    },
+    {
+      label: "Posture",
+      cur: current.postureScore,
+      base: baseline.result.postureScore,
+      better: "higher",
+    },
+    {
+      label: "Performance",
+      cur: current.performanceScore,
+      base: baseline.result.performanceScore,
+      better: "higher",
+    },
+    {
+      label: "Stability",
+      cur: current.scores.movementStability,
+      base: baseline.result.scores.movementStability,
+      better: "higher",
+    },
+    {
+      label: "Alignment",
+      cur: current.scores.jointAlignment,
+      base: baseline.result.scores.jointAlignment,
+      better: "higher",
+    },
+    {
+      label: "Landing",
+      cur: current.scores.landingTechnique,
+      base: baseline.result.scores.landingTechnique,
+      better: "higher",
+    },
+    {
+      label: "Balance",
+      cur: current.scores.balance,
+      base: baseline.result.scores.balance,
+      better: "higher",
+    },
   ];
 
   return (
@@ -1064,10 +1451,29 @@ function Comparison({
           <ResponsiveContainer>
             <RadarChart data={radarData}>
               <PolarGrid stroke="oklch(0.4 0.02 160)" />
-              <PolarAngleAxis dataKey="axis" tick={{ fill: "oklch(0.85 0.01 120)", fontSize: 11 }} />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "oklch(0.6 0.02 150)", fontSize: 10 }} />
-              <Radar name="Current" dataKey="current" stroke="oklch(0.86 0.21 130)" fill="oklch(0.86 0.21 130)" fillOpacity={0.35} />
-              <Radar name="Baseline" dataKey="baseline" stroke="oklch(0.7 0.18 200)" fill="oklch(0.7 0.18 200)" fillOpacity={0.25} />
+              <PolarAngleAxis
+                dataKey="axis"
+                tick={{ fill: "oklch(0.85 0.01 120)", fontSize: 11 }}
+              />
+              <PolarRadiusAxis
+                angle={30}
+                domain={[0, 100]}
+                tick={{ fill: "oklch(0.6 0.02 150)", fontSize: 10 }}
+              />
+              <Radar
+                name="Current"
+                dataKey="current"
+                stroke="oklch(0.86 0.21 130)"
+                fill="oklch(0.86 0.21 130)"
+                fillOpacity={0.35}
+              />
+              <Radar
+                name="Baseline"
+                dataKey="baseline"
+                stroke="oklch(0.7 0.18 200)"
+                fill="oklch(0.7 0.18 200)"
+                fillOpacity={0.25}
+              />
               <RechartsLegend wrapperStyle={{ fontSize: 11 }} />
             </RadarChart>
           </ResponsiveContainer>
@@ -1091,12 +1497,17 @@ function Comparison({
                   <tr key={r.label} className="border-t border-border">
                     <td className="px-3 py-2 font-medium">{r.label}</td>
                     <td className="px-3 py-2 text-right font-mono">{r.cur}</td>
-                    <td className="px-3 py-2 text-right font-mono text-muted-foreground">{r.base}</td>
-                    <td className={cn(
-                      "px-3 py-2 text-right font-mono",
-                      same ? "text-muted-foreground" : improved ? "text-success" : "text-danger",
-                    )}>
-                      {delta > 0 ? "+" : ""}{delta}
+                    <td className="px-3 py-2 text-right font-mono text-muted-foreground">
+                      {r.base}
+                    </td>
+                    <td
+                      className={cn(
+                        "px-3 py-2 text-right font-mono",
+                        same ? "text-muted-foreground" : improved ? "text-success" : "text-danger",
+                      )}
+                    >
+                      {delta > 0 ? "+" : ""}
+                      {delta}
                     </td>
                   </tr>
                 );
@@ -1132,6 +1543,40 @@ function Report({
   profile?: any;
   hasHistory?: boolean;
 }) {
+  const [showAngles, setShowAngles] = useState(false);
+  const [annotations, setAnnotations] = useState<Record<number, string>>(() => {
+    return (result as any).annotations || {};
+  });
+
+  const saveAnnotation = (frameIndex: number, text: string) => {
+    const next = { ...annotations, [frameIndex]: text };
+    setAnnotations(next);
+    (result as any).annotations = next;
+    
+    // update localStorage history entry
+    try {
+      const currentHistory = loadHistory();
+      const updatedHistory = currentHistory.map((item) => {
+        if (
+          item.result.movementSummary === result.movementSummary &&
+          item.createdAt === (result as any).createdAt
+        ) {
+          return {
+            ...item,
+            result: {
+              ...item.result,
+              annotations: next,
+            } as any,
+          };
+        }
+        return item;
+      });
+      localStorage.setItem("kinetiq.history.v1", JSON.stringify(updatedHistory));
+    } catch (e) {
+      console.warn("failed to update history annotations", e);
+    }
+  };
+
   const radarData = useMemo(
     () => [
       { axis: "Stability", value: result.scores.movementStability },
@@ -1143,6 +1588,31 @@ function Report({
     [result],
   );
 
+  const angleTimelineData = useMemo(() => {
+    return frames
+      .map((f) => {
+        if (!f.joints) return null;
+        const lKnee = calculateAngle(f.joints.leftHip, f.joints.leftKnee, f.joints.leftAnkle);
+        const rKnee = calculateAngle(f.joints.rightHip, f.joints.rightKnee, f.joints.rightAnkle);
+        const lHip = calculateAngle(f.joints.leftShoulder, f.joints.leftHip, f.joints.leftKnee);
+        const rHip = calculateAngle(f.joints.rightShoulder, f.joints.rightHip, f.joints.rightKnee);
+        const lElbow = calculateAngle(f.joints.leftShoulder, f.joints.leftElbow, f.joints.leftWrist);
+        const rElbow = calculateAngle(f.joints.rightShoulder, f.joints.rightElbow, f.joints.rightWrist);
+
+        return {
+          time: `${f.timeSec.toFixed(1)}s`,
+          timeSec: f.timeSec,
+          "L Knee": lKnee ?? 0,
+          "R Knee": rKnee ?? 0,
+          "L Hip": lHip ?? 0,
+          "R Hip": rHip ?? 0,
+          "L Elbow": lElbow ?? 0,
+          "R Elbow": rElbow ?? 0,
+        };
+      })
+      .filter(Boolean);
+  }, [frames]);
+
   // Map frame stress entries back to extracted frames by nearest timestamp
   const heatmapFrames = useMemo(() => {
     return result.frameStress
@@ -1152,8 +1622,51 @@ function Report({
         if (!f) return null;
         return { ...fs, dataUrl: f.dataUrl, time: f.timeSec };
       })
-      .filter(Boolean) as Array<typeof result.frameStress[number] & { dataUrl: string; time: number }>;
+      .filter(Boolean) as Array<
+      (typeof result.frameStress)[number] & { dataUrl: string; time: number }
+    >;
   }, [result, frames]);
+
+  const chatFn = useServerFn(chatWithCoach);
+  const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([
+    {
+      role: "assistant",
+      content: `Hi! I'm your KinetIQ AI Coach. Ask me anything about your ${sport} biomechanics report, your posture score (${result.postureScore}/100), or your active recovery options.`,
+    },
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSendChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || chatLoading) return;
+
+    const userMsg = { role: "user" as const, content: chatInput };
+    const updatedMsgs = [...messages, userMsg];
+    setMessages(updatedMsgs);
+    setChatInput("");
+    setChatLoading(true);
+
+    try {
+      const res = await chatFn({
+        data: {
+          analysisResult: result,
+          profile,
+          messages: updatedMsgs,
+        },
+      });
+      setMessages([...updatedMsgs, { role: "assistant", content: res.response }]);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to get coach response");
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   const exportPdf = () => {
     const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -1165,18 +1678,33 @@ function Report({
       doc.setFontSize(size);
       const lines = doc.splitTextToSize(text, W - margin * 2);
       lines.forEach((ln: string) => {
-        if (y > 780) { doc.addPage(); y = margin; }
+        if (y > 780) {
+          doc.addPage();
+          y = margin;
+        }
         doc.text(ln, margin, y);
         y += size + 4;
       });
     };
-    const hr = () => { y += 6; doc.setDrawColor(200); doc.line(margin, y, W - margin, y); y += 12; };
+    const hr = () => {
+      y += 6;
+      doc.setDrawColor(200);
+      doc.line(margin, y, W - margin, y);
+      y += 12;
+    };
 
     wrap("KinetIQ — AI Sports Analysis Report", 20, true);
     wrap(`Sport: ${sport}   ·   File: ${fileName}   ·   ${new Date().toLocaleString()}`, 9);
     hr();
-    wrap(`Overall injury risk: ${result.overallRiskLevel} (${result.overallRiskPercent}%)`, 14, true);
-    wrap(`Posture: ${result.postureScore}/100   Performance: ${result.performanceScore}/100`, 11);
+    wrap(
+      `Overall injury risk: ${result.overallRiskLevel} (${result.overallRiskPercent}%)`,
+      14,
+      true,
+    );
+    wrap(
+      `Posture: ${result.postureScore}/100   Performance: ${result.performanceScore}/100   Symmetry: ${result.symmetryIndex !== undefined ? result.symmetryIndex : 90}%   Impact force: ${result.estimatedImpactForce || "N/A"}`,
+      11,
+    );
     y += 6;
     wrap("Movement summary", 13, true);
     wrap(result.movementSummary);
@@ -1209,6 +1737,16 @@ function Report({
     hr();
     wrap("Prevention exercises", 13, true);
     result.preventionExercises.forEach((e) => wrap(`• ${e.name} — ${e.targets} (${e.sets})`));
+    if (result.recoveryPlan && result.recoveryPlan.length > 0) {
+      hr();
+      wrap("Active recovery plan", 13, true);
+      result.recoveryPlan.forEach((rec) => wrap(`• ${rec}`));
+    }
+    if (result.nutritionalTips && result.nutritionalTips.length > 0) {
+      hr();
+      wrap("Nutrition & hydration tips", 13, true);
+      result.nutritionalTips.forEach((tip) => wrap(`• ${tip}`));
+    }
     hr();
     wrap("Coach notes", 13, true);
     wrap(result.coachNotes);
@@ -1220,7 +1758,9 @@ function Report({
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs uppercase font-mono tracking-widest text-primary">Analysis report</p>
+            <p className="text-xs uppercase font-mono tracking-widest text-primary">
+              Analysis report
+            </p>
             {profile && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30 animate-pulse">
                 <Sparkles className="w-3.5 h-3.5" /> Personalized Profile Active
@@ -1243,16 +1783,64 @@ function Report({
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+        <div className="col-span-2 lg:col-span-1">
+          <ScoreCard
+            label="Overall injury risk"
+            value={`${result.overallRiskPercent}%`}
+            sub={result.overallRiskLevel}
+            tone={
+              result.overallRiskLevel === "High"
+                ? "danger"
+                : result.overallRiskLevel === "Medium"
+                  ? "warning"
+                  : "success"
+            }
+            Icon={ShieldAlert}
+          />
+        </div>
         <ScoreCard
-          label="Overall injury risk"
-          value={`${result.overallRiskPercent}%`}
-          sub={result.overallRiskLevel}
-          tone={result.overallRiskLevel === "High" ? "danger" : result.overallRiskLevel === "Medium" ? "warning" : "success"}
-          Icon={ShieldAlert}
+          label="Posture score"
+          value={`${result.postureScore}`}
+          sub="/ 100"
+          tone="primary"
+          Icon={Activity}
         />
-        <ScoreCard label="Posture score" value={`${result.postureScore}`} sub="/ 100" tone="primary" Icon={Activity} />
-        <ScoreCard label="Performance score" value={`${result.performanceScore}`} sub="/ 100" tone="accent" Icon={TrendingUp} />
+        <ScoreCard
+          label="Performance score"
+          value={`${result.performanceScore}`}
+          sub="/ 100"
+          tone="accent"
+          Icon={TrendingUp}
+        />
+        <ScoreCard
+          label="Bilateral Symmetry"
+          value={`${result.symmetryIndex !== undefined ? result.symmetryIndex : 90}%`}
+          sub={
+            (result.symmetryIndex !== undefined ? result.symmetryIndex : 90) >= 85
+              ? "Balanced"
+              : "Asymmetric"
+          }
+          tone={
+            (result.symmetryIndex !== undefined ? result.symmetryIndex : 90) >= 85
+              ? "success"
+              : "warning"
+          }
+          Icon={Scale}
+        />
+        <ScoreCard
+          label="Est. Impact Load"
+          value={result.estimatedImpactForce || "2.1G"}
+          sub="Peak G-force"
+          tone={
+            (result.estimatedImpactForce || "").toLowerCase().includes("high")
+              ? "danger"
+              : (result.estimatedImpactForce || "").toLowerCase().includes("medium")
+                ? "warning"
+                : "success"
+          }
+          Icon={Zap}
+        />
       </div>
 
       {compareWith && <Comparison current={result} baseline={compareWith} />}
@@ -1270,19 +1858,37 @@ function Report({
             <h3 className="font-semibold flex items-center gap-2">
               <Flame className="w-4 h-4 text-danger" /> Joint stress heatmap
             </h3>
-            <Legend />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowAngles(!showAngles)}
+                className={cn(
+                  "text-xs px-2.5 py-1 rounded-md border font-semibold transition-all",
+                  showAngles
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-background text-muted-foreground border-border hover:text-foreground"
+                )}
+              >
+                {showAngles ? "Hide Joint Angles" : "Show Joint Angles"}
+              </button>
+              <Legend />
+            </div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Red glow = high mechanical stress on that joint. Click a frame to jump the video to that moment.
+            Red glow = high mechanical stress on that joint. Click a frame to jump the video to that
+            moment.
           </p>
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {heatmapFrames.map((hf, i) => (
-              <HeatmapFrame
+              <AnnotatedHeatmapFrame
                 key={i}
                 frameUrl={hf.dataUrl}
                 joints={hf.joints}
                 time={hf.time}
-                onClick={() => onSeek(hf.time)}
+                frameIndex={hf.frameIndex}
+                showAngles={showAngles}
+                onSeek={onSeek}
+                note={annotations[hf.frameIndex] || ""}
+                onSaveNote={saveAnnotation}
               />
             ))}
           </div>
@@ -1296,9 +1902,21 @@ function Report({
             <ResponsiveContainer>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="oklch(0.4 0.02 160)" />
-                <PolarAngleAxis dataKey="axis" tick={{ fill: "oklch(0.85 0.01 120)", fontSize: 12 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "oklch(0.6 0.02 150)", fontSize: 10 }} />
-                <Radar dataKey="value" stroke="oklch(0.86 0.21 130)" fill="oklch(0.86 0.21 130)" fillOpacity={0.35} />
+                <PolarAngleAxis
+                  dataKey="axis"
+                  tick={{ fill: "oklch(0.85 0.01 120)", fontSize: 12 }}
+                />
+                <PolarRadiusAxis
+                  angle={30}
+                  domain={[0, 100]}
+                  tick={{ fill: "oklch(0.6 0.02 150)", fontSize: 10 }}
+                />
+                <Radar
+                  dataKey="value"
+                  stroke="oklch(0.86 0.21 130)"
+                  fill="oklch(0.86 0.21 130)"
+                  fillOpacity={0.35}
+                />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -1315,20 +1933,59 @@ function Report({
                   <span className="font-semibold">{r.bodyPart}</span>
                   <span className="text-muted-foreground">·</span>
                   <span className="text-sm">{r.injury}</span>
-                  <span className={cn("ml-auto text-xs px-2 py-0.5 rounded-full border font-mono", riskColor(r.level))}>
+                  <span
+                    className={cn(
+                      "ml-auto text-xs px-2 py-0.5 rounded-full border font-mono",
+                      riskColor(r.level),
+                    )}
+                  >
                     {r.level} · {r.probabilityPercent}%
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-2"><span className="text-foreground/80 font-medium">Why:</span> {r.reason}</p>
-                <p className="text-sm text-muted-foreground mt-1"><span className="text-primary font-medium">Fix:</span> {r.correction}</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  <span className="text-foreground/80 font-medium">Why:</span> {r.reason}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  <span className="text-primary font-medium">Fix:</span> {r.correction}
+                </p>
               </li>
             ))}
             {result.injuryRisks.length === 0 && (
-              <li className="text-sm text-muted-foreground">No significant injury risks detected.</li>
+              <li className="text-sm text-muted-foreground">
+                No significant injury risks detected.
+              </li>
             )}
           </ul>
         </div>
       </div>
+
+      {angleTimelineData.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Scale className="w-4 h-4 text-primary" /> Range of Motion & Joint Angle Tracking
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Flexion angle (in degrees) calculated from body joint vector coordinates across sequential keyframes.
+          </p>
+          <div className="h-80 mt-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={angleTimelineData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="time" stroke="rgba(255,255,255,0.4)" fontSize={11} />
+                <YAxis domain={[0, 180]} tickFormatter={(val) => `${val}°`} stroke="rgba(255,255,255,0.4)" fontSize={11} />
+                <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(20,20,25,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} labelClassName="text-white text-xs" />
+                <RechartsLegend verticalAlign="top" height={36} iconType="circle" />
+                <Line type="monotone" dataKey="L Knee" stroke="oklch(0.65 0.25 350)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="R Knee" stroke="oklch(0.7 0.2 30)" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="L Hip" stroke="oklch(0.6 0.2 140)" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="R Hip" stroke="oklch(0.65 0.15 180)" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="L Elbow" stroke="oklch(0.65 0.2 260)" strokeWidth={1.5} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="R Elbow" stroke="oklch(0.7 0.15 290)" strokeWidth={1.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-5">
@@ -1362,14 +2019,101 @@ function Report({
         <h3 className="font-semibold">Improvement suggestions</h3>
         <ul className="mt-3 grid sm:grid-cols-2 gap-2 list-disc list-inside text-sm">
           {result.improvementSuggestions.map((s, i) => (
-            <li key={i} className="text-muted-foreground"><span className="text-foreground">{s}</span></li>
+            <li key={i} className="text-muted-foreground">
+              <span className="text-foreground">{s}</span>
+            </li>
           ))}
         </ul>
       </div>
 
       <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5">
-        <h3 className="font-semibold flex items-center gap-2 text-primary"><Sparkles className="w-4 h-4" /> AI coach notes</h3>
+        <h3 className="font-semibold flex items-center gap-2 text-primary">
+          <Sparkles className="w-4 h-4" /> AI coach notes
+        </h3>
         <p className="mt-2 text-sm leading-relaxed">{result.coachNotes}</p>
+      </div>
+
+      {result.recoveryPlan && result.recoveryPlan.length > 0 && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Zap className="w-4 h-4 text-warning" /> Active Recovery Plan
+            </h3>
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              {result.recoveryPlan.map((rec, idx) => (
+                <li key={idx}><span className="text-foreground">{rec}</span></li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Apple className="w-4 h-4 text-success" /> Sports Nutrition & Hydration
+            </h3>
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc list-inside">
+              {result.nutritionalTips.map((tip, idx) => (
+                <li key={idx}><span className="text-foreground">{tip}</span></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* AI Coach Interactive Chat Panel */}
+      <div className="rounded-2xl border border-border bg-card overflow-hidden mt-6">
+        <div className="border-b border-border bg-muted/40 px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+            </span>
+            <h3 className="font-semibold flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-primary" /> Interactive AI Coach
+            </h3>
+          </div>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">Active Session</span>
+        </div>
+
+        <div className="p-5 space-y-4 max-h-96 overflow-y-auto flex flex-col">
+          {messages.map((msg, i) => (
+            <div
+              key={i}
+              className={cn(
+                "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed shadow-sm",
+                msg.role === "user"
+                  ? "self-end bg-primary text-primary-foreground rounded-tr-none"
+                  : "self-start bg-muted text-foreground rounded-tl-none"
+              )}
+            >
+              {msg.content}
+            </div>
+          ))}
+          {chatLoading && (
+            <div className="self-start bg-muted text-foreground rounded-2xl rounded-tl-none px-4 py-2.5 text-sm flex items-center gap-2 shadow-sm">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span>Coach is typing...</span>
+            </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+
+        <form onSubmit={handleSendChat} className="p-4 border-t border-border bg-muted/20 flex gap-2">
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            placeholder="Ask your coach (e.g., 'How do I fix my landing technique?')..."
+            className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            disabled={chatLoading}
+          />
+          <button
+            type="submit"
+            disabled={chatLoading || !chatInput.trim()}
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+          >
+            {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          </button>
+        </form>
       </div>
     </section>
   );
@@ -1381,7 +2125,10 @@ function Legend() {
       <span>safe</span>
       <span
         className="h-2 w-32 rounded-full"
-        style={{ background: "linear-gradient(to right, hsl(120,90%,50%), hsl(60,90%,50%), hsl(0,90%,50%))" }}
+        style={{
+          background:
+            "linear-gradient(to right, hsl(120,90%,50%), hsl(60,90%,50%), hsl(0,90%,50%))",
+        }}
       />
       <span>high stress</span>
     </div>
@@ -1393,7 +2140,11 @@ function clamp(v: number, lo: number, hi: number) {
 }
 
 function ScoreCard({
-  label, value, sub, tone, Icon,
+  label,
+  value,
+  sub,
+  tone,
+  Icon,
 }: {
   label: string;
   value: string;
@@ -1431,11 +2182,17 @@ function Footer() {
             <Activity className="h-5 w-5 text-primary" />
             KinetIQ
           </div>
-          <p className="font-body text-xs text-on-surface-variant">© 2026 KinetIQ AI Coach. Precision in motion.</p>
+          <p className="font-body text-xs text-on-surface-variant">
+            © 2026 KinetIQ AI Coach. Precision in motion.
+          </p>
         </div>
         <div className="flex gap-8 text-xs text-on-surface-variant">
-          <a className="hover:text-primary transition-colors duration-200" href="#">Privacy Policy</a>
-          <a className="hover:text-primary transition-colors duration-200" href="#">Terms of Service</a>
+          <a className="hover:text-primary transition-colors duration-200" href="#">
+            Privacy Policy
+          </a>
+          <a className="hover:text-primary transition-colors duration-200" href="#">
+            Terms of Service
+          </a>
           <span className="font-mono opacity-60">Not medical advice</span>
         </div>
       </div>

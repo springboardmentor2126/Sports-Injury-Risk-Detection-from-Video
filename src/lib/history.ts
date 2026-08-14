@@ -41,10 +41,7 @@ export function saveAnalysis(entry: SavedAnalysis) {
   } catch {
     // quota exceeded — try without thumbnails
     try {
-      localStorage.setItem(
-        KEY,
-        JSON.stringify(next.map((n) => ({ ...n, thumbnail: "" }))),
-      );
+      localStorage.setItem(KEY, JSON.stringify(next.map((n) => ({ ...n, thumbnail: "" }))));
     } catch {
       /* give up */
     }
@@ -62,11 +59,7 @@ export function deleteAnalysis(id: string) {
   return next;
 }
 
-export async function shrinkDataUrl(
-  src: string,
-  maxWidth = 240,
-  quality = 0.6,
-): Promise<string> {
+export async function shrinkDataUrl(src: string, maxWidth = 240, quality = 0.6): Promise<string> {
   return await new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {

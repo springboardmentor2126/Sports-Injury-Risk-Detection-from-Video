@@ -15,7 +15,11 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — KinetIQ" },
-      { name: "description", content: "Sign in or create your KinetIQ athlete account to analyze your movement and track injury risk over time." },
+      {
+        name: "description",
+        content:
+          "Sign in or create your KinetIQ athlete account to analyze your movement and track injury risk over time.",
+      },
     ],
   }),
   component: AuthPage,
@@ -81,7 +85,10 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 flex items-center gap-2 justify-center text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/"
+          className="mb-6 flex items-center gap-2 justify-center text-sm text-muted-foreground hover:text-foreground"
+        >
           <Activity className="h-5 w-5 text-primary" />
           <span className="font-semibold tracking-tight">KinetIQ</span>
         </Link>
@@ -101,11 +108,23 @@ function AuthPage() {
                 <form onSubmit={onSignIn} className="space-y-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="e1">Email</Label>
-                    <Input id="e1" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <Input
+                      id="e1"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="p1">Password</Label>
-                    <Input id="p1" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <Input
+                      id="p1"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
                   </div>
                   <Button type="submit" disabled={busy} className="w-full">
                     {busy && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Sign in
@@ -117,21 +136,51 @@ function AuthPage() {
                 <form onSubmit={onSignUp} className="space-y-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="n2">Display name</Label>
-                    <Input id="n2" required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                    <Input
+                      id="n2"
+                      required
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="e2">Email</Label>
-                    <Input id="e2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <Input
+                      id="e2"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="p2">Password</Label>
-                    <Input id="p2" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <Input
+                      id="p2"
+                      type="password"
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label>I am a</Label>
                     <div className="grid grid-cols-2 gap-2">
-                      <Button type="button" variant={role === "athlete" ? "default" : "outline"} onClick={() => setRole("athlete")}>Athlete</Button>
-                      <Button type="button" variant={role === "coach" ? "default" : "outline"} onClick={() => setRole("coach")}>Coach</Button>
+                      <Button
+                        type="button"
+                        variant={role === "athlete" ? "default" : "outline"}
+                        onClick={() => setRole("athlete")}
+                      >
+                        Athlete
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={role === "coach" ? "default" : "outline"}
+                        onClick={() => setRole("coach")}
+                      >
+                        Coach
+                      </Button>
                     </div>
                   </div>
                   <Button type="submit" disabled={busy} className="w-full">
@@ -142,7 +191,9 @@ function AuthPage() {
             </Tabs>
 
             <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="h-px flex-1 bg-border" />OR<div className="h-px flex-1 bg-border" />
+              <div className="h-px flex-1 bg-border" />
+              OR
+              <div className="h-px flex-1 bg-border" />
             </div>
             <Button variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
               Continue with Google
