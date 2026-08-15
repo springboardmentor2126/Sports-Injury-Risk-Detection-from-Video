@@ -217,7 +217,7 @@ Athlete Personal Profile & Biometrics:
       const pastList = data.pastAnalyses
         .map(
           (a) =>
-            `- Date: ${new Date(a.createdAt).toLocaleDateString()} | Sport: ${a.sport} | Risk: ${a.overallRiskLevel} (${a.overallRiskPercent}%) | Posture Score: ${a.postureScore} | Performance Score: ${a.performanceScore}${a.movementSummary ? ` | Summary: ${a.movementSummary}` : ""}`
+            `- Date: ${new Date(a.createdAt).toLocaleDateString()} | Sport: ${a.sport} | Risk: ${a.overallRiskLevel} (${a.overallRiskPercent}%) | Posture Score: ${a.postureScore} | Performance Score: ${a.performanceScore}${a.movementSummary ? ` | Summary: ${a.movementSummary}` : ""}`,
         )
         .join("\n");
       historyText = `
@@ -235,13 +235,18 @@ Mention specific improvements, regressions, or chronic persistent issues (like r
     if (framesWithJoints.length > 0) {
       jointsText = `\n\nMATHEMATICALLY TRACKED JOINT COORDINATES (MediaPipe Pose Landmarks):
 For your reference, high-precision computer-vision tracked coordinates (normalized x,y from top-left, 0 to 1) are available for each keyframe:
-${data.frames.map((f, idx) => {
-  if (!f.joints) return `- Frame ${idx}: No physical coordinates detected.`;
-  const jointsStr = Object.entries(f.joints)
-    .map(([name, pt]) => `${name}: (x=${pt.x.toFixed(3)}, y=${pt.y.toFixed(3)}, conf=${pt.confidence.toFixed(2)})`)
-    .join(", ");
-  return `- Frame ${idx} (t=${f.timeSec.toFixed(2)}s): ${jointsStr}`;
-}).join("\n")}
+${data.frames
+  .map((f, idx) => {
+    if (!f.joints) return `- Frame ${idx}: No physical coordinates detected.`;
+    const jointsStr = Object.entries(f.joints)
+      .map(
+        ([name, pt]) =>
+          `${name}: (x=${pt.x.toFixed(3)}, y=${pt.y.toFixed(3)}, conf=${pt.confidence.toFixed(2)})`,
+      )
+      .join(", ");
+    return `- Frame ${idx} (t=${f.timeSec.toFixed(2)}s): ${jointsStr}`;
+  })
+  .join("\n")}
 
 CRITICAL: Use these coordinates to compute frameStress and joint alignment in your output. Verify if there is symmetry or alignment issues using these exact coordinates.`;
     }
@@ -304,9 +309,9 @@ export const chatWithCoach = createServerFn({ method: "POST" })
         z.object({
           role: z.enum(["user", "assistant"]),
           content: z.string(),
-        })
+        }),
       ),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const key = process.env.AI_API_KEY;
@@ -339,4 +344,3 @@ ${JSON.stringify(data.profile || {}, null, 2)}`;
 
     return { response: text };
   });
-

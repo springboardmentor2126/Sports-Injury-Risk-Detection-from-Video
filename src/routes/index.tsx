@@ -43,7 +43,12 @@ import {
 } from "recharts";
 import jsPDF from "jspdf";
 import { toast, Toaster } from "sonner";
-import { analyzePose, chatWithCoach, type AnalysisJoint, type AnalysisResult } from "@/lib/analyze.functions";
+import {
+  analyzePose,
+  chatWithCoach,
+  type AnalysisJoint,
+  type AnalysisResult,
+} from "@/lib/analyze.functions";
 import {
   deleteAnalysis,
   loadHistory,
@@ -115,10 +120,12 @@ type ExtractedFrame = {
   joints?: Record<string, { x: number; y: number; confidence: number }>;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let poseLandmarkerInstance: any = null;
 const getPoseLandmarker = async () => {
   if (poseLandmarkerInstance) return poseLandmarkerInstance;
   const visionModule = await import(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs" as any
   );
   const vision = await visionModule.FilesetResolver.forVisionTasks(
@@ -135,8 +142,10 @@ const getPoseLandmarker = async () => {
   return poseLandmarkerInstance;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapMediaPipeToKinetIQ = (landmarks: any[]) => {
   if (!landmarks || landmarks.length === 0) return undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getConf = (lm: any) => (lm.visibility !== undefined ? lm.visibility : lm.presence || 1.0);
 
   const neck = {
@@ -166,7 +175,7 @@ const mapMediaPipeToKinetIQ = (landmarks: any[]) => {
 const calculateAngle = (
   a?: { x: number; y: number },
   b?: { x: number; y: number },
-  c?: { x: number; y: number }
+  c?: { x: number; y: number },
 ): number | null => {
   if (!a || !b || !c) return null;
   const vectorBA = { x: a.x - b.x, y: a.y - b.y };
@@ -200,6 +209,7 @@ function Index() {
 
   const [history, setHistory] = useState<SavedAnalysis[]>([]);
   const [compareWith, setCompareWith] = useState<SavedAnalysis | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -243,7 +253,9 @@ function Index() {
       notes: string;
       durationSec: number;
       frames: ExtractedFrame[];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       profile?: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pastAnalyses?: any[];
       model?: string;
     }) => (await analyze({ data: payload })) as AnalysisResult,
@@ -329,6 +341,7 @@ function Index() {
       smallCanvas.height = smallH;
       const smallCtx = smallCanvas.getContext("2d")!;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let landmarker: any = null;
       try {
         landmarker = await getPoseLandmarker();
@@ -339,6 +352,7 @@ function Index() {
       const captured: ExtractedFrame[] = [];
       for (const t of timestamps) {
         await new Promise<void>((resolve) => {
+          // eslint-disable-next-line prefer-const, @typescript-eslint/no-explicit-any
           let timeoutId: any;
           const onSeeked = () => {
             video.removeEventListener("seeked", onSeeked);
@@ -887,19 +901,17 @@ function HistoryPanel({
   onCompare: (h: SavedAnalysis) => void;
   onDelete: (id: string) => void;
 }) {
-  if (history.length === 0) return null;
-
   const trendData = useMemo(() => {
-    return [...history]
-      .reverse()
-      .map((h) => ({
-        date: new Date(h.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-        "Posture": h.result.postureScore,
-        "Performance": h.result.performanceScore,
-        "Symmetry": h.result.symmetryIndex !== undefined ? h.result.symmetryIndex : 90,
-        "Injury Risk": h.result.overallRiskPercent,
-      }));
+    return [...history].reverse().map((h) => ({
+      date: new Date(h.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      Posture: h.result.postureScore,
+      Performance: h.result.performanceScore,
+      Symmetry: h.result.symmetryIndex !== undefined ? h.result.symmetryIndex : 90,
+      "Injury Risk": h.result.overallRiskPercent,
+    }));
   }, [history]);
+
+  if (history.length === 0) return null;
 
   return (
     <section className="mt-8 rounded-2xl border border-border bg-card p-5">
@@ -975,7 +987,8 @@ function HistoryPanel({
             <TrendingUp className="w-4 h-4 text-primary" /> Athlete Progress Trends
           </h3>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            Tracking performance improvement and injury risk reduction across successive analysis sessions.
+            Tracking performance improvement and injury risk reduction across successive analysis
+            sessions.
           </p>
           <div className="h-56 mt-4">
             <ResponsiveContainer width="100%" height="100%">
@@ -983,12 +996,48 @@ function HistoryPanel({
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" fontSize={10} />
                 <YAxis domain={[0, 100]} stroke="rgba(255,255,255,0.4)" fontSize={10} />
-                <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(20,20,25,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} labelClassName="text-white text-xs" />
-                <RechartsLegend verticalAlign="top" height={32} iconType="circle" wrapperStyle={{ fontSize: 10 }} />
-                <Line type="monotone" dataKey="Posture" stroke="oklch(0.65 0.25 260)" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="Performance" stroke="oklch(0.7 0.2 130)" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="Symmetry" stroke="oklch(0.6 0.18 190)" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="Injury Risk" stroke="oklch(0.65 0.25 350)" strokeWidth={2} dot={{ r: 3 }} />
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(20,20,25,0.95)",
+                    borderColor: "rgba(255,255,255,0.1)",
+                    borderRadius: "8px",
+                  }}
+                  labelClassName="text-white text-xs"
+                />
+                <RechartsLegend
+                  verticalAlign="top"
+                  height={32}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 10 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="Posture"
+                  stroke="oklch(0.65 0.25 260)"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="Performance"
+                  stroke="oklch(0.7 0.2 130)"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="Symmetry"
+                  stroke="oklch(0.6 0.18 190)"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="Injury Risk"
+                  stroke="oklch(0.65 0.25 350)"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -1099,12 +1148,30 @@ function HeatmapFrame({
 
     if (showAngles) {
       const angles = [
-        { name: "leftKnee", val: calculateAngle(jointsObj.leftHip, jointsObj.leftKnee, jointsObj.leftAnkle) },
-        { name: "rightKnee", val: calculateAngle(jointsObj.rightHip, jointsObj.rightKnee, jointsObj.rightAnkle) },
-        { name: "leftHip", val: calculateAngle(jointsObj.leftShoulder, jointsObj.leftHip, jointsObj.leftKnee) },
-        { name: "rightHip", val: calculateAngle(jointsObj.rightShoulder, jointsObj.rightHip, jointsObj.rightKnee) },
-        { name: "leftElbow", val: calculateAngle(jointsObj.leftShoulder, jointsObj.leftElbow, jointsObj.leftWrist) },
-        { name: "rightElbow", val: calculateAngle(jointsObj.rightShoulder, jointsObj.rightElbow, jointsObj.rightWrist) },
+        {
+          name: "leftKnee",
+          val: calculateAngle(jointsObj.leftHip, jointsObj.leftKnee, jointsObj.leftAnkle),
+        },
+        {
+          name: "rightKnee",
+          val: calculateAngle(jointsObj.rightHip, jointsObj.rightKnee, jointsObj.rightAnkle),
+        },
+        {
+          name: "leftHip",
+          val: calculateAngle(jointsObj.leftShoulder, jointsObj.leftHip, jointsObj.leftKnee),
+        },
+        {
+          name: "rightHip",
+          val: calculateAngle(jointsObj.rightShoulder, jointsObj.rightHip, jointsObj.rightKnee),
+        },
+        {
+          name: "leftElbow",
+          val: calculateAngle(jointsObj.leftShoulder, jointsObj.leftElbow, jointsObj.leftWrist),
+        },
+        {
+          name: "rightElbow",
+          val: calculateAngle(jointsObj.rightShoulder, jointsObj.rightElbow, jointsObj.rightWrist),
+        },
       ];
       for (const a of angles) {
         if (a.val !== null) {
@@ -1255,13 +1322,15 @@ function RiskyTimeline({
   frameTimes: number[];
   onSeek: (t: number) => void;
 }) {
-  if (!duration || duration <= 0) return null;
   const ticks = useMemo(() => {
+    if (!duration || duration <= 0) return [];
     const step = duration <= 6 ? 1 : duration <= 20 ? 2 : 5;
     const arr: number[] = [];
     for (let t = 0; t <= duration; t += step) arr.push(t);
     return arr;
   }, [duration]);
+
+  if (!duration || duration <= 0) return null;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -1540,25 +1609,29 @@ function Report({
   frames: ExtractedFrame[];
   onSeek: (t: number) => void;
   compareWith: SavedAnalysis | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   profile?: any;
   hasHistory?: boolean;
 }) {
   const [showAngles, setShowAngles] = useState(false);
   const [annotations, setAnnotations] = useState<Record<number, string>>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (result as any).annotations || {};
   });
 
   const saveAnnotation = (frameIndex: number, text: string) => {
     const next = { ...annotations, [frameIndex]: text };
     setAnnotations(next);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (result as any).annotations = next;
-    
+
     // update localStorage history entry
     try {
       const currentHistory = loadHistory();
       const updatedHistory = currentHistory.map((item) => {
         if (
           item.result.movementSummary === result.movementSummary &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           item.createdAt === (result as any).createdAt
         ) {
           return {
@@ -1566,6 +1639,7 @@ function Report({
             result: {
               ...item.result,
               annotations: next,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any,
           };
         }
@@ -1596,8 +1670,16 @@ function Report({
         const rKnee = calculateAngle(f.joints.rightHip, f.joints.rightKnee, f.joints.rightAnkle);
         const lHip = calculateAngle(f.joints.leftShoulder, f.joints.leftHip, f.joints.leftKnee);
         const rHip = calculateAngle(f.joints.rightShoulder, f.joints.rightHip, f.joints.rightKnee);
-        const lElbow = calculateAngle(f.joints.leftShoulder, f.joints.leftElbow, f.joints.leftWrist);
-        const rElbow = calculateAngle(f.joints.rightShoulder, f.joints.rightElbow, f.joints.rightWrist);
+        const lElbow = calculateAngle(
+          f.joints.leftShoulder,
+          f.joints.leftElbow,
+          f.joints.leftWrist,
+        );
+        const rElbow = calculateAngle(
+          f.joints.rightShoulder,
+          f.joints.rightElbow,
+          f.joints.rightWrist,
+        );
 
         return {
           time: `${f.timeSec.toFixed(1)}s`,
@@ -1661,8 +1743,8 @@ function Report({
         },
       });
       setMessages([...updatedMsgs, { role: "assistant", content: res.response }]);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to get coach response");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to get coach response");
     } finally {
       setChatLoading(false);
     }
@@ -1865,7 +1947,7 @@ function Report({
                   "text-xs px-2.5 py-1 rounded-md border font-semibold transition-all",
                   showAngles
                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-background text-muted-foreground border-border hover:text-foreground"
+                    : "bg-background text-muted-foreground border-border hover:text-foreground",
                 )}
               >
                 {showAngles ? "Hide Joint Angles" : "Show Joint Angles"}
@@ -1965,22 +2047,75 @@ function Report({
             <Scale className="w-4 h-4 text-primary" /> Range of Motion & Joint Angle Tracking
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Flexion angle (in degrees) calculated from body joint vector coordinates across sequential keyframes.
+            Flexion angle (in degrees) calculated from body joint vector coordinates across
+            sequential keyframes.
           </p>
           <div className="h-80 mt-6">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={angleTimelineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="time" stroke="rgba(255,255,255,0.4)" fontSize={11} />
-                <YAxis domain={[0, 180]} tickFormatter={(val) => `${val}°`} stroke="rgba(255,255,255,0.4)" fontSize={11} />
-                <RechartsTooltip contentStyle={{ backgroundColor: 'rgba(20,20,25,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }} labelClassName="text-white text-xs" />
+                <YAxis
+                  domain={[0, 180]}
+                  tickFormatter={(val) => `${val}°`}
+                  stroke="rgba(255,255,255,0.4)"
+                  fontSize={11}
+                />
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(20,20,25,0.95)",
+                    borderColor: "rgba(255,255,255,0.1)",
+                    borderRadius: "8px",
+                  }}
+                  labelClassName="text-white text-xs"
+                />
                 <RechartsLegend verticalAlign="top" height={36} iconType="circle" />
-                <Line type="monotone" dataKey="L Knee" stroke="oklch(0.65 0.25 350)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="R Knee" stroke="oklch(0.7 0.2 30)" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="L Hip" stroke="oklch(0.6 0.2 140)" strokeWidth={2} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="R Hip" stroke="oklch(0.65 0.15 180)" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="L Elbow" stroke="oklch(0.65 0.2 260)" strokeWidth={1.5} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="R Elbow" stroke="oklch(0.7 0.15 290)" strokeWidth={1.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+                <Line
+                  type="monotone"
+                  dataKey="L Knee"
+                  stroke="oklch(0.65 0.25 350)"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="R Knee"
+                  stroke="oklch(0.7 0.2 30)"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="L Hip"
+                  stroke="oklch(0.6 0.2 140)"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="R Hip"
+                  stroke="oklch(0.65 0.15 180)"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="L Elbow"
+                  stroke="oklch(0.65 0.2 260)"
+                  strokeWidth={1.5}
+                  dot={{ r: 3 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="R Elbow"
+                  stroke="oklch(0.7 0.15 290)"
+                  strokeWidth={1.5}
+                  strokeDasharray="5 5"
+                  dot={{ r: 3 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -2041,7 +2176,9 @@ function Report({
             </h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc list-inside">
               {result.recoveryPlan.map((rec, idx) => (
-                <li key={idx}><span className="text-foreground">{rec}</span></li>
+                <li key={idx}>
+                  <span className="text-foreground">{rec}</span>
+                </li>
               ))}
             </ul>
           </div>
@@ -2052,7 +2189,9 @@ function Report({
             </h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc list-inside">
               {result.nutritionalTips.map((tip, idx) => (
-                <li key={idx}><span className="text-foreground">{tip}</span></li>
+                <li key={idx}>
+                  <span className="text-foreground">{tip}</span>
+                </li>
               ))}
             </ul>
           </div>
@@ -2071,7 +2210,9 @@ function Report({
               <MessageSquare className="w-4 h-4 text-primary" /> Interactive AI Coach
             </h3>
           </div>
-          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">Active Session</span>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+            Active Session
+          </span>
         </div>
 
         <div className="p-5 space-y-4 max-h-96 overflow-y-auto flex flex-col">
@@ -2082,7 +2223,7 @@ function Report({
                 "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed shadow-sm",
                 msg.role === "user"
                   ? "self-end bg-primary text-primary-foreground rounded-tr-none"
-                  : "self-start bg-muted text-foreground rounded-tl-none"
+                  : "self-start bg-muted text-foreground rounded-tl-none",
               )}
             >
               {msg.content}
@@ -2097,7 +2238,10 @@ function Report({
           <div ref={chatEndRef} />
         </div>
 
-        <form onSubmit={handleSendChat} className="p-4 border-t border-border bg-muted/20 flex gap-2">
+        <form
+          onSubmit={handleSendChat}
+          className="p-4 border-t border-border bg-muted/20 flex gap-2"
+        >
           <input
             type="text"
             value={chatInput}
@@ -2111,7 +2255,11 @@ function Report({
             disabled={chatLoading || !chatInput.trim()}
             className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
           >
-            {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {chatLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </button>
         </form>
       </div>
