@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from app.core.database import engine, Base
-from app.api.routes import auth, athletes, video
+from app.api.routes import auth, athletes, video, chat
 
 # Import all models so SQLAlchemy can create their tables
 from app.models import user, athlete, video_analysis  # noqa: F401
@@ -36,6 +36,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(auth.router)
 app.include_router(athletes.router)
 app.include_router(video.router)
+app.include_router(chat.router)
 
 
 # ─── Health Check ──────────────────────────────────────────────

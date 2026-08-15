@@ -18,15 +18,21 @@ import os
 import json
 import uuid
 import shutil
+import logging
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+logger = logging.getLogger(__name__)
+
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.api.routes.auth import get_current_user
 from app.models.video_analysis import VideoAnalysis
+from app.models.athlete import AthleteProfile
 from app.ml.pose_estimation.service import process_video, VideoAnalysisResult
+from app.ml.inference import predict_injury_risk
+from app.ml.ai_service import generate_static_recommendation
 
 router = APIRouter(prefix="/api/video", tags=["Video Analysis"])
 
@@ -40,29 +46,71 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 ALLOWED_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
 
 
-def _derive_risk_level(result: VideoAnalysisResult) -> str:
-    """Convert raw risk flag counts into a human-readable risk level."""
-    total_risk_frames = (
-        result.frames_knee_hyperextension +
-        result.frames_knee_acute_flexion +
-        result.frames_excessive_trunk_lean +
-        result.frames_elbow_hyperextension
-    )
-    pct = (total_risk_frames / result.frames_with_pose * 100) if result.frames_with_pose > 0 else 0
+def _save_ai_recs_in_background(
+    session_id: str,
+    risk_level: str,
+    sport_type: str,
+    active_flags: dict,
+) -> None:
+    """
+    Called as a FastAPI BackgroundTask after the HTTP response is already sent.
+    Calls Gemini, then writes ai_recommendations back to the DB record.
+    Running this in the background cuts the user-facing response time
+    from ~20 seconds down to ~8 seconds.
+    """
+    from app.core.database import SessionLocal  # local import to avoid circular dep
+    from app.models.athlete import AthleteProfile
+    from app.models.video_analysis import VideoAnalysis
+    
+    db = SessionLocal()
+    try:
+        # Fetch the session and the user's injury history
+        analysis = db.query(VideoAnalysis).filter(VideoAnalysis.session_id == session_id).first()
+        injury_history = []
+        if analysis:
+            profile = db.query(AthleteProfile).filter(AthleteProfile.user_id == analysis.user_id).first()
+            if profile and profile.injury_histories:
+                injury_history = [f"{inj.injury_name} ({inj.affected_body_part})" for inj in profile.injury_histories]
 
-    if pct == 0:
-        return "low"
-    elif pct < 20:
-        return "moderate"
-    elif pct < 50:
-        return "high"
-    else:
-        return "critical"
+        ai_recs = generate_static_recommendation(
+            risk_level=risk_level,
+            sport_type=sport_type,
+            active_flags=active_flags,
+            injury_history=injury_history,
+        )
+        if not ai_recs:
+            ai_recs = {
+                "exercise_recommendations": ["(AI generation temporarily unavailable)"],
+                "mobility_suggestions": ["(Please consult your coach for alternatives)"],
+                "recovery_planning": ["(Ensure adequate rest and hydration)"]
+            }
+        
+        if analysis:
+            analysis.ai_recommendations = json.dumps(ai_recs)
+            db.commit()
+            logger.info(f"AI recommendations saved in background for session {session_id}")
+    except Exception as e:
+        logger.warning(f"Background AI recommendation failed for session {session_id}: {e}")
+        try:
+            if analysis:
+                fallback = {
+                    "exercise_recommendations": ["(AI generation failed)"],
+                    "mobility_suggestions": ["(Please consult your coach)"],
+                    "recovery_planning": ["(Ensure adequate rest)"]
+                }
+                analysis.ai_recommendations = json.dumps(fallback)
+                db.commit()
+        except Exception:
+            pass
+    finally:
+        db.close()
+
 
 
 @router.post("/analyze", summary="Upload a video and run pose estimation + biomechanics")
 async def analyze_video(
     file: UploadFile = File(..., description="Video file to analyze"),
+    background_tasks: BackgroundTasks = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -107,8 +155,7 @@ async def analyze_video(
         video_path.unlink(missing_ok=True)
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
-    # Delete the original uploaded video — it has been processed and is no longer needed.
-    # The annotated frame screenshots are all that is kept on disk.
+    # Delete the original uploaded video after processing
     video_path.unlink(missing_ok=True)
 
     # Build URL paths for the saved annotated images and the skeleton video
@@ -122,9 +169,51 @@ async def analyze_video(
         else None
     )
 
-    risk_level = _derive_risk_level(result)
+    # ── Fetch athlete sport type from AthleteProfile ─────────────────
+    # XGBoost uses the sport to apply sport-specific risk thresholds.
+    athlete_profile = (
+        db.query(AthleteProfile)
+        .filter(AthleteProfile.user_id == str(current_user.id))
+        .first()
+    )
+    sport_type = athlete_profile.sport_type if athlete_profile else "OTHER"
 
-    # ── Save results to the database ────────────────────────────────
+    # ── Run XGBoost Inference ─────────────────────────────────────────
+    # Derive binary flags from frame counts (1 if any frame triggered it)
+    flag_knee_hyperext = 1 if result.frames_knee_hyperextension > 0 else 0
+    flag_knee_valgus   = 1 if result.frames_knee_valgus > 0 else 0
+    flag_trunk_lean    = 1 if result.frames_excessive_trunk_lean > 0 else 0
+    flag_low_symmetry  = 1 if result.frames_low_symmetry > 0 else 0
+
+    prediction = predict_injury_risk(
+        sport_type=sport_type,
+        knee_flexion=(
+            ((result.avg_left_knee_angle or 0) + (result.avg_right_knee_angle or 0)) / 2
+            if result.avg_left_knee_angle or result.avg_right_knee_angle else None
+        ),
+        hip_angle=(
+            ((result.avg_left_hip_angle or 0) + (result.avg_right_hip_angle or 0)) / 2
+            if result.avg_left_hip_angle or result.avg_right_hip_angle else None
+        ),
+        elbow_angle=(
+            ((result.avg_left_elbow_angle or 0) + (result.avg_right_elbow_angle or 0)) / 2
+            if result.avg_left_elbow_angle or result.avg_right_elbow_angle else None
+        ),
+        shoulder_rotation=result.avg_shoulder_rotation,
+        trunk_lean=result.avg_trunk_lean,
+        knee_valgus_angle=result.avg_knee_valgus_angle,
+        symmetry=result.avg_overall_symmetry,
+        flag_knee_hyperext=flag_knee_hyperext,
+        flag_knee_valgus=flag_knee_valgus,
+        flag_trunk_lean=flag_trunk_lean,
+        flag_low_symmetry=flag_low_symmetry,
+    )
+
+    risk_level = prediction.risk_level
+
+    # ── Save results to DB immediately (WITHOUT waiting for Gemini) ─────
+    # Gemini runs as a BackgroundTask AFTER the response is sent.
+    # This cuts user-facing wait time from ~20s → ~8s.
     analysis = VideoAnalysis(
         user_id=str(current_user.id),
         session_id=session_id,
@@ -147,21 +236,57 @@ async def analyze_video(
         avg_knee_symmetry=result.avg_knee_symmetry,
         avg_hip_symmetry=result.avg_hip_symmetry,
         avg_overall_symmetry=result.avg_overall_symmetry,
+        avg_knee_valgus_angle=result.avg_knee_valgus_angle,
+        avg_shoulder_rotation=result.avg_shoulder_rotation,
         frames_knee_hyperextension=result.frames_knee_hyperextension,
         frames_knee_acute_flexion=result.frames_knee_acute_flexion,
         frames_excessive_trunk_lean=result.frames_excessive_trunk_lean,
         frames_low_symmetry=result.frames_low_symmetry,
         frames_elbow_hyperextension=result.frames_elbow_hyperextension,
+        frames_knee_valgus=result.frames_knee_valgus,
         risk_level=risk_level,
+        xgboost_confidence=prediction.confidence,
+        xgboost_probabilities=json.dumps(prediction.probabilities),
+        sport_type_used=prediction.sport_type,
+        ai_recommendations=None,  # Will be filled by background task
     )
     db.add(analysis)
     db.commit()
     db.refresh(analysis)
 
-    # ── Return full response to frontend ────────────────────────────
+    # ── Schedule Gemini as background task (runs AFTER response is sent) ──
+    if background_tasks is not None:
+        background_tasks.add_task(
+            _save_ai_recs_in_background,
+            session_id=session_id,
+            risk_level=risk_level,
+            sport_type=sport_type,
+            active_flags={
+                "knee_hyperextension": flag_knee_hyperext == 1,
+                "knee_valgus":          flag_knee_valgus == 1,
+                "excessive_trunk_lean": flag_trunk_lean == 1,
+                "low_symmetry":         flag_low_symmetry == 1,
+                "knee_acute_flexion":   result.frames_knee_acute_flexion > 0,
+                "elbow_hyperextension": result.frames_elbow_hyperextension > 0,
+            },
+        )
+
     return {
         "session_id": session_id,
         "risk_level": risk_level,
+
+        # AI corrective plan — generated in background, available when revisiting session history
+        "ai_recommendations": None,  # Gemini runs after response; reload session history to see it
+
+        # XGBoost prediction details
+        "xgboost": {
+            "risk_level":     prediction.risk_level,
+            "risk_score":     prediction.risk_score,
+            "confidence":     prediction.confidence,
+            "probabilities":  prediction.probabilities,
+            "sport_used":     prediction.sport_type,
+            "model_version":  prediction.model_version,
+        },
 
         # Video metadata
         "video": {
@@ -173,7 +298,7 @@ async def analyze_video(
             "pose_detection_rate": result.pose_detection_rate,
         },
 
-        # Skeleton video (temporary — deleted when user clicks "New Video")
+        # Skeleton video (temporary)
         "annotated_video_url": annotated_video_url,
 
         # Annotated frame screenshots (permanent)
@@ -193,15 +318,18 @@ async def analyze_video(
             "avg_knee_symmetry":     result.avg_knee_symmetry,
             "avg_hip_symmetry":      result.avg_hip_symmetry,
             "avg_overall_symmetry":  result.avg_overall_symmetry,
+            "avg_knee_valgus_angle": result.avg_knee_valgus_angle,
+            "avg_shoulder_rotation": result.avg_shoulder_rotation,
         },
 
-        # Risk flag counts
+        # Risk flag counts (raw counts — shown to coaches and physiotherapists)
         "risk_flags": {
             "knee_hyperextension_frames":  result.frames_knee_hyperextension,
             "knee_acute_flexion_frames":   result.frames_knee_acute_flexion,
             "excessive_trunk_lean_frames": result.frames_excessive_trunk_lean,
             "low_symmetry_frames":         result.frames_low_symmetry,
             "elbow_hyperextension_frames": result.frames_elbow_hyperextension,
+            "knee_valgus_frames":          result.frames_knee_valgus,
         },
     }
 
@@ -220,7 +348,6 @@ def get_analysis_history(
     )
     return [
         {
-            # ── Identity ─────────────────────────────────────────
             "session_id":          a.session_id,
             "filename":            a.original_filename,
             "duration_seconds":    a.duration_seconds,
@@ -229,9 +356,14 @@ def get_analysis_history(
             "frames_with_pose":    a.frames_with_pose,
             "risk_level":          a.risk_level,
             "created_at":          a.created_at.isoformat() if a.created_at else None,
-            # ── Screenshots ──────────────────────────────────────
             "annotated_frames":    json.loads(a.annotated_frame_urls) if a.annotated_frame_urls else [],
-            # ── Biomechanics ─────────────────────────────────────
+            # XGBoost output
+            "xgboost_confidence":    a.xgboost_confidence,
+            "xgboost_probabilities": json.loads(a.xgboost_probabilities) if a.xgboost_probabilities else None,
+            "sport_type_used":       a.sport_type_used,
+            # AI Recommendations
+            "ai_recommendations":     json.loads(a.ai_recommendations) if a.ai_recommendations else None,
+            # Biomechanics
             "avg_left_knee_angle":   a.avg_left_knee_angle,
             "avg_right_knee_angle":  a.avg_right_knee_angle,
             "min_left_knee_angle":   a.min_left_knee_angle,
@@ -244,12 +376,15 @@ def get_analysis_history(
             "avg_knee_symmetry":     a.avg_knee_symmetry,
             "avg_hip_symmetry":      a.avg_hip_symmetry,
             "avg_overall_symmetry":  a.avg_overall_symmetry,
-            # ── Risk Flags ───────────────────────────────────────
+            "avg_knee_valgus_angle": a.avg_knee_valgus_angle,
+            "avg_shoulder_rotation": a.avg_shoulder_rotation,
+            # Risk Flags
             "frames_knee_hyperextension":  a.frames_knee_hyperextension,
             "frames_knee_acute_flexion":   a.frames_knee_acute_flexion,
             "frames_excessive_trunk_lean": a.frames_excessive_trunk_lean,
             "frames_low_symmetry":         a.frames_low_symmetry,
             "frames_elbow_hyperextension": a.frames_elbow_hyperextension,
+            "frames_knee_valgus":          a.frames_knee_valgus,
         }
         for a in analyses
     ]
@@ -291,6 +426,13 @@ def get_athlete_history(
             "risk_level":           a.risk_level,
             "created_at":           a.created_at.isoformat() if a.created_at else None,
             "annotated_frames":     json.loads(a.annotated_frame_urls) if a.annotated_frame_urls else [],
+            # XGBoost output
+            "xgboost_confidence":    a.xgboost_confidence,
+            "xgboost_probabilities": json.loads(a.xgboost_probabilities) if a.xgboost_probabilities else None,
+            "sport_type_used":       a.sport_type_used,
+            # AI Recommendations
+            "ai_recommendations":     json.loads(a.ai_recommendations) if a.ai_recommendations else None,
+            # Biomechanics
             "avg_left_knee_angle":   a.avg_left_knee_angle,
             "avg_right_knee_angle":  a.avg_right_knee_angle,
             "min_left_knee_angle":   a.min_left_knee_angle,
@@ -303,11 +445,15 @@ def get_athlete_history(
             "avg_knee_symmetry":     a.avg_knee_symmetry,
             "avg_hip_symmetry":      a.avg_hip_symmetry,
             "avg_overall_symmetry":  a.avg_overall_symmetry,
+            "avg_knee_valgus_angle": a.avg_knee_valgus_angle,
+            "avg_shoulder_rotation": a.avg_shoulder_rotation,
+            # Risk Flags
             "frames_knee_hyperextension":  a.frames_knee_hyperextension,
             "frames_knee_acute_flexion":   a.frames_knee_acute_flexion,
             "frames_excessive_trunk_lean": a.frames_excessive_trunk_lean,
             "frames_low_symmetry":         a.frames_low_symmetry,
             "frames_elbow_hyperextension": a.frames_elbow_hyperextension,
+            "frames_knee_valgus":          a.frames_knee_valgus,
         }
         for a in analyses
     ]

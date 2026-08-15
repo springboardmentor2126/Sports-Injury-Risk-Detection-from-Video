@@ -52,12 +52,17 @@ class VideoAnalysisResult:
     avg_trunk_lean:         Optional[float] = None
     avg_overall_symmetry:   Optional[float] = None
 
+    # XGBoost-specific aggregated metrics (added in Milestone 3)
+    avg_knee_valgus_angle:  Optional[float] = None   # Average FPPA valgus angle
+    avg_shoulder_rotation:  Optional[float] = None   # Average shoulder rotation
+
     # Risk flag counts: how many frames triggered each risk flag
     frames_knee_hyperextension: int = 0
     frames_knee_acute_flexion:  int = 0
     frames_excessive_trunk_lean: int = 0
     frames_low_symmetry:        int = 0
     frames_elbow_hyperextension: int = 0
+    frames_knee_valgus:         int = 0   # Added for XGBoost feature
 
     # Per-frame data for detailed analysis
     frame_results:         List[FrameResult] = field(default_factory=list)
@@ -307,8 +312,23 @@ def _aggregate_biomechanics(
     result.avg_trunk_lean       = avg(b.trunk_lean_deg     for b in bio_frames)
     result.avg_overall_symmetry = avg(b.symmetry.overall   for b in bio_frames)
 
-    result.frames_knee_hyperextension = sum(1 for b in bio_frames if b.risk_flags.knee_hyperextension)
-    result.frames_knee_acute_flexion  = sum(1 for b in bio_frames if b.risk_flags.knee_acute_flexion)
+    # XGBoost features — valgus angle and shoulder rotation averages
+    result.avg_knee_valgus_angle = avg(
+        ((b.angles.left_knee_valgus or 0) + (b.angles.right_knee_valgus or 0)) / 2
+        if b.angles.left_knee_valgus is not None or b.angles.right_knee_valgus is not None
+        else None
+        for b in bio_frames
+    )
+    result.avg_shoulder_rotation = avg(
+        ((b.angles.left_shoulder or 0) + (b.angles.right_shoulder or 0)) / 2
+        if b.angles.left_shoulder is not None or b.angles.right_shoulder is not None
+        else None
+        for b in bio_frames
+    )
+
+    result.frames_knee_hyperextension  = sum(1 for b in bio_frames if b.risk_flags.knee_hyperextension)
+    result.frames_knee_acute_flexion   = sum(1 for b in bio_frames if b.risk_flags.knee_acute_flexion)
     result.frames_excessive_trunk_lean = sum(1 for b in bio_frames if b.risk_flags.trunk_lean_excessive)
-    result.frames_low_symmetry        = sum(1 for b in bio_frames if b.risk_flags.low_symmetry)
+    result.frames_low_symmetry         = sum(1 for b in bio_frames if b.risk_flags.low_symmetry)
     result.frames_elbow_hyperextension = sum(1 for b in bio_frames if b.risk_flags.elbow_hyperextension)
+    result.frames_knee_valgus          = sum(1 for b in bio_frames if b.risk_flags.knee_valgus_mild or b.risk_flags.knee_valgus_severe)

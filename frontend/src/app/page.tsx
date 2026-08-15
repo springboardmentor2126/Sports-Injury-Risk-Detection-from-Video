@@ -4,7 +4,7 @@ import Link from "next/link";
 const features = [
   {
     title: "Pose Estimation",
-    desc: "YOLOv8 AI detects 17 body keypoints per frame to map exact athlete movement.",
+    desc: "MediaPipe AI detects 33 body keypoints per frame to map exact athlete movement.",
     tag: "Computer Vision",
     tagClass: "sg-badge-blue",
   },
@@ -47,7 +47,18 @@ const roles = [
   { label: "Sports Scientist", desc: "Deep biomechanical research and analytics" },
 ];
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getToken } from "@/lib/api";
+
 export default function LandingPage() {
+  const router = useRouter();
+  
+  useEffect(() => {
+    if (getToken()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
   return (
     <div style={{ background: "#ffffff", color: "#0f172a" }}>
 

@@ -1,8 +1,8 @@
 "use client";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { authApi, setToken } from "@/lib/api";
+import { authApi, setToken, getToken } from "@/lib/api";
 
 const ROLES = [
   { id: 1, label: "Athlete", desc: "Upload videos for personal movement analysis" },
@@ -23,6 +23,12 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (getToken()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
+
   function set(field: string, value: string | number) {
     setForm(prev => ({ ...prev, [field]: value }));
   }
@@ -41,7 +47,7 @@ export default function RegisterPage() {
       setToken(tokenData.access_token);
       // Clear any cached analysis from a previous account session
       localStorage.removeItem("sg_last_analysis");
-      router.push("/dashboard/profile?new=1");
+      router.replace("/dashboard/profile?new=1");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
