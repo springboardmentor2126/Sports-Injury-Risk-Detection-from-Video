@@ -53,7 +53,7 @@ function AuthPage() {
   const onSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -63,22 +63,45 @@ function AuthPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Account created — you're signed in");
-    navigate({ to: "/profile" });
+    
+    if (data?.session) {
+      toast.success("Account created — you're signed in");
+      navigate({ to: "/profile" });
+    } else {
+      toast.success("Account created! Please verify your email before logging in.");
+      setTab("signin");
+    }
   };
 
   const onGoogle = async () => {
     setBusy(true);
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/profile`,
-      },
-    });
-    if (error) {
-      setBusy(false);
-      toast.error(error.message || "Google sign-in failed");
-      return;
+    const isLocalhost =
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1" ||
+        window.location.hostname.startsWith("192.168."));
+
+    if (isLocalhost) {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/profile`,
+        },
+      });
+      if (error) {
+        setBusy(false);
+        toast.error(error.message || "Google sign-in failed");
+        return;
+      }
+    } else {
+      const { error } = await cloudAuth.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/profile`,
+      });
+      if (error) {
+        setBusy(false);
+        toast.error(error.message || "Google sign-in failed");
+        return;
+      }
     }
   };
 

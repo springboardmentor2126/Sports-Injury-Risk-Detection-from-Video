@@ -738,13 +738,40 @@ function Index() {
 
 function Header() {
   const [email, setEmail] = useState<string | null>(null);
+  const [isCoach, setIsCoach] = useState(false);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) =>
-      setEmail(s?.user.email ?? null),
-    );
+    const checkRole = async (userId: string) => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      if (data && data.some((r) => r.role === "coach")) {
+        setIsCoach(true);
+      } else {
+        setIsCoach(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data }) => {
+      const session = data.session;
+      setEmail(session?.user.email ?? null);
+      if (session?.user.id) {
+        checkRole(session.user.id);
+      }
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setEmail(s?.user.email ?? null);
+      if (s?.user.id) {
+        checkRole(s.user.id);
+      } else {
+        setIsCoach(false);
+      }
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
+
   return (
     <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-xl border-b border-primary/10 shadow-[0_0_30px_rgba(125,211,252,0.05)]">
       <nav className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
@@ -765,6 +792,14 @@ function Header() {
           <RouterLink className="text-primary border-b-2 border-primary pb-1" to="/">
             Analysis
           </RouterLink>
+          {email && (
+            <RouterLink
+              className="text-on-surface-variant hover:text-on-surface transition-all duration-300"
+              to="/athlete"
+            >
+              {isCoach ? "Coach Portal" : "Athlete Hub"}
+            </RouterLink>
+          )}
         </div>
         <div className="flex items-center gap-4">
           {email ? (

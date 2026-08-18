@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
@@ -343,4 +344,63 @@ ${JSON.stringify(data.profile || {}, null, 2)}`;
     });
 
     return { response: text };
+  });
+
+export const switchUserRole = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      userId: z.string().uuid(),
+      newRole: z.enum(["athlete", "coach", "admin"]),
+    }),
+  )
+  .handler(async ({ data }) => {
+    console.log("[switchUserRole] Request received:", data);
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    console.log("[switchUserRole] URL:", supabaseUrl, "Has Service Key:", !!serviceRoleKey);
+    
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error("Supabase credentials (URL or Service Role Key) not configured in environment variables.");
+    }
+    
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    const { data: existing, error: fetchError } = await serviceClient
+      .from("user_roles")
+      .select("*")
+      .eq("user_id", data.userId);
+
+    if (fetchError) {
+      console.error("[switchUserRole] Fetch error:", fetchError);
+      throw new Error(`Failed to fetch existing roles: ${fetchError.message}`);
+    }
+
+    console.log("[switchUserRole] Existing roles:", existing);
+
+    if (existing && existing.length > 0) {
+      const { error: updateError } = await serviceClient
+        .from("user_roles")
+        .update({ role: data.newRole })
+        .eq("user_id", data.userId);
+        
+      if (updateError) {
+        console.error("[switchUserRole] Update error:", updateError);
+        throw new Error(`Failed to update role: ${updateError.message}`);
+      }
+    } else {
+      const { error: insertError } = await serviceClient
+        .from("user_roles")
+        .insert({ user_id: data.userId, role: data.newRole });
+        
+      if (insertError) {
+        console.error("[switchUserRole] Insert error:", insertError);
+        throw new Error(`Failed to insert role: ${insertError.message}`);
+      }
+    }
+
+    console.log("[switchUserRole] Success, new role:", data.newRole);
+    return { success: true, role: data.newRole };
   });

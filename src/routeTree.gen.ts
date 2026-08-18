@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedAthleteRouteImport } from './routes/_authenticated/athlete'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -39,17 +40,24 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAthleteRoute = AuthenticatedAthleteRouteImport.update({
+  id: '/athlete',
+  path: '/athlete',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/athlete': typeof AuthenticatedAthleteRoute
   '/profile': typeof AuthenticatedProfileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/athlete': typeof AuthenticatedAthleteRoute
   '/profile': typeof AuthenticatedProfileRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/athlete': typeof AuthenticatedAthleteRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/sitemap.xml' | '/profile'
+  fullPaths: '/' | '/auth' | '/sitemap.xml' | '/athlete' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/sitemap.xml' | '/profile'
+  to: '/' | '/auth' | '/sitemap.xml' | '/athlete' | '/profile'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/sitemap.xml'
+    | '/_authenticated/athlete'
     | '/_authenticated/profile'
   fileRoutesById: FileRoutesById
 }
@@ -118,14 +128,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/athlete': {
+      id: '/_authenticated/athlete'
+      path: '/athlete'
+      fullPath: '/athlete'
+      preLoaderRoute: typeof AuthenticatedAthleteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAthleteRoute: typeof AuthenticatedAthleteRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAthleteRoute: AuthenticatedAthleteRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
 }
 

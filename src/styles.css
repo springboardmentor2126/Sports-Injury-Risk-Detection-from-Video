@@ -45,49 +45,44 @@
 :root {
   --radius: 0.75rem;
 
-  /* Premium Glacier Ice-Blue dark theme */
-  --background: #0a0e1a;
-  --foreground: #e0e8f0;
+  /* Premium Human-centric Light Theme */
+  --background: #f8fafc;
+  --foreground: #0f172a;
 
-  --card: #0f1524;
-  --card-foreground: #e0e8f0;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
 
-  --popover: #0f1524;
-  --popover-foreground: #e0e8f0;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
 
-  --primary: #7dd3fc; /* cyan/glacier ice blue */
-  --primary-foreground: #001f2e;
+  --primary: #0d9488; /* Premium Athletic Deep Teal */
+  --primary-foreground: #ffffff;
 
-  --secondary: #88b4cc;
-  --secondary-foreground: #0d1f2b;
+  --secondary: #475569;
+  --secondary-foreground: #ffffff;
 
-  --muted: #1a2438;
-  --muted-foreground: #a0b4c4;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
 
-  --accent: #c8a0f0;
-  --accent-foreground: #1a002e;
+  --accent: #10b981; /* Fresh Emerald Mint */
+  --accent-foreground: #ffffff;
 
-  --destructive: #ff6b6b;
-  --destructive-foreground: #1a0000;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
 
-  --success: #88b4cc;
-  --warning: #c8a0f0;
-  --danger: #ff6b6b;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
 
-  --border: rgba(125, 211, 252, 0.1);
-  --input: #141c2e;
-  --ring: #7dd3fc;
+  --border: #e2e8f0;
+  --input: #ffffff;
+  --ring: #0d9488;
 
-  --chart-1: #7dd3fc;
-  --chart-2: #88b4cc;
-  --chart-3: #c8a0f0;
-  --chart-4: #ff6b6b;
-  --chart-5: #a0b4c4;
-}
-
-.dark {
-  --background: #0a0e1a;
-  --foreground: #e0e8f0;
+  --chart-1: #0d9488;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #475569;
 }
 
 @layer base {
@@ -115,57 +110,57 @@
 
 @utility grid-bg {
   background-image:
-    linear-gradient(to right, oklch(1 0 0 / 4%) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(1 0 0 / 4%) 1px, transparent 1px);
+    linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
 @utility glow-primary {
   box-shadow:
-    0 0 0 1px rgba(125, 211, 252, 0.2),
-    0 10px 40px -10px rgba(125, 211, 252, 0.3);
+    0 0 0 1px rgba(13, 148, 136, 0.1),
+    0 10px 40px -10px rgba(13, 148, 136, 0.2);
 }
 
 .text-glow {
-  text-shadow: 0 0 12px rgba(125, 211, 252, 0.4);
+  text-shadow: 0 0 12px rgba(13, 148, 136, 0.15);
 }
 
 /* Glassmorphism Mockup styles */
 .glass-card {
-  background: rgba(15, 21, 36, 0.6);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(125, 211, 252, 0.1);
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .glass-card-elevated {
-  background: rgba(15, 21, 36, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(125, 211, 252, 0.15);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .ice-glow {
-  box-shadow: 0 0 30px rgba(125, 211, 252, 0.05);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03), 0 1px 3px rgba(15, 23, 42, 0.02);
 }
 
 /* Theme color mappings from mockup */
 .bg-surface-container {
-  background-color: #141c2e;
+  background-color: #ffffff;
 }
 .bg-surface-container-low {
-  background-color: #111828;
+  background-color: #f8fafc;
 }
 .bg-surface-container-lowest {
-  background-color: #0a0e1a;
+  background-color: #ffffff;
 }
 .bg-surface-container-highest {
-  background-color: #202c42;
+  background-color: #f1f5f9;
 }
 .text-on-surface-variant {
-  color: #a0b4c4;
+  color: #475569;
 }
 .border-outline-variant {
-  border-color: #2a3a48;
+  border-color: #e2e8f0;
 }
 .border-outline {
-  border-color: #4a6070;
+  border-color: #cbd5e1;
 }
