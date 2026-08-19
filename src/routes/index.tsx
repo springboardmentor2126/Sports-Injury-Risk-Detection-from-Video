@@ -742,10 +742,7 @@ function Header() {
 
   useEffect(() => {
     const checkRole = async (userId: string) => {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId);
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
       if (data && data.some((r) => r.role === "coach")) {
         setIsCoach(true);
       } else {

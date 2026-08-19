@@ -65,7 +65,8 @@ export const Route = createFileRoute("/_authenticated/athlete")({
       { title: "Athlete Hub — KinetIQ" },
       {
         name: "description",
-        content: "Track your biomechanical progress, rehabilitation plans, and connect with your coach and AI.",
+        content:
+          "Track your biomechanical progress, rehabilitation plans, and connect with your coach and AI.",
       },
     ],
   }),
@@ -118,14 +119,14 @@ export function AthleteHubPage() {
         prof = data;
         console.log("[AthleteHubPage] Fetched profile successfully:", prof);
       } catch (err) {
-        console.warn("[AthleteHubPage] Profiles table query failed, utilizing fallback profile:", err);
+        console.warn(
+          "[AthleteHubPage] Profiles table query failed, utilizing fallback profile:",
+          err,
+        );
       }
 
       try {
-        const { data } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id);
+        const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
         rs = data;
         console.log("[AthleteHubPage] Fetched roles successfully:", rs);
       } catch (err) {
@@ -197,7 +198,7 @@ export function AthleteHubPage() {
 
       setLoading(false);
     })();
-  }, [user.id]);
+  }, [user.id, user.email]);
 
   const handleSendChat = async (e?: React.FormEvent, customPrompt?: string) => {
     if (e) e.preventDefault();
@@ -211,25 +212,28 @@ export function AthleteHubPage() {
 
     try {
       // Find latest result if available
-      const latestResult = history.length > 0 ? history[0].result : {
-        sportDetected: profile.primary_sport || "General",
-        movementSummary: "No session analyzed yet.",
-        overallRiskLevel: "Low",
-        overallRiskPercent: 10,
-        postureScore: 70,
-        performanceScore: 70,
-        scores: { stability: 70, alignment: 70, landing: 70, balance: 70, fatigue: 10 },
-        injuryRisks: [],
-        techniqueFindings: [],
-        preventionExercises: [],
-      };
+      const latestResult =
+        history.length > 0
+          ? history[0].result
+          : {
+              sportDetected: profile.primary_sport || "General",
+              movementSummary: "No session analyzed yet.",
+              overallRiskLevel: "Low",
+              overallRiskPercent: 10,
+              postureScore: 70,
+              performanceScore: 70,
+              scores: { stability: 70, alignment: 70, landing: 70, balance: 70, fatigue: 10 },
+              injuryRisks: [],
+              techniqueFindings: [],
+              preventionExercises: [],
+            };
 
       const response = await askCoach({
         data: {
           analysisResult: latestResult,
           profile: profile,
           messages: newMessages,
-        }
+        },
       });
 
       if (response && response.response) {
@@ -243,7 +247,8 @@ export function AthleteHubPage() {
         ...newMessages,
         {
           role: "assistant",
-          content: "Sorry, I encountered an issue connecting to my intelligence module. Please verify your Gemini API key is configured.",
+          content:
+            "Sorry, I encountered an issue connecting to my intelligence module. Please verify your Gemini API key is configured.",
         },
       ]);
     } finally {
@@ -278,7 +283,7 @@ export function AthleteHubPage() {
         // If last completion was yesterday, increment. If today, keep same. If older, reset to 1
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        
+
         if (lastCompletedDate === yesterday.toDateString()) {
           newStreak += 1;
         } else if (lastCompletedDate !== today) {
@@ -291,7 +296,8 @@ export function AthleteHubPage() {
       }
     } else {
       // If they uncheck something, check if they had previously completed all
-      const prevAllDone = exercises.length > 0 && exercises.every((ex) => completedExercises[ex.exercise]);
+      const prevAllDone =
+        exercises.length > 0 && exercises.every((ex) => completedExercises[ex.exercise]);
       if (prevAllDone && lastCompletedDate === today) {
         // Decrement streak or reset lastCompletedDate if they undo today's completion
         const newStreak = Math.max(0, rehabStreak - 1);
@@ -304,31 +310,48 @@ export function AthleteHubPage() {
   };
 
   const getLatestExercises = () => {
-    if (history.length > 0 && history[0].result.preventionExercises && history[0].result.preventionExercises.length > 0) {
+    if (
+      history.length > 0 &&
+      history[0].result.preventionExercises &&
+      history[0].result.preventionExercises.length > 0
+    ) {
       return history[0].result.preventionExercises;
     }
     // Fallback exercises based on sport or general prehab
     return [
-      { exercise: "Glute Bridges", sets: "3", reps: "12", target: "Hip Stability & Landing Softness" },
-      { exercise: "Single-Leg Balance Stance", sets: "3", reps: "30s each leg", target: "Ankle & Knee Alignment" },
-      { exercise: "Ankle Dorsiflexion Stretch", sets: "2", reps: "10 reps", target: "Deceleration Shock Absorption" },
+      {
+        exercise: "Glute Bridges",
+        sets: "3",
+        reps: "12",
+        target: "Hip Stability & Landing Softness",
+      },
+      {
+        exercise: "Single-Leg Balance Stance",
+        sets: "3",
+        reps: "30s each leg",
+        target: "Ankle & Knee Alignment",
+      },
+      {
+        exercise: "Ankle Dorsiflexion Stretch",
+        sets: "2",
+        reps: "10 reps",
+        target: "Deceleration Shock Absorption",
+      },
     ];
   };
 
   const getChartData = () => {
     // Reverse historical data to show progression from past to present
-    return [...history]
-      .reverse()
-      .map((item) => ({
-        date: new Date(item.createdAt).toLocaleDateString(undefined, {
-          month: "short",
-          day: "numeric",
-        }),
-        posture: item.result.postureScore,
-        performance: item.result.performanceScore,
-        injuryRisk: item.result.overallRiskPercent,
-        sport: item.result.sportDetected,
-      }));
+    return [...history].reverse().map((item) => ({
+      date: new Date(item.createdAt).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      }),
+      posture: item.result.postureScore,
+      performance: item.result.performanceScore,
+      injuryRisk: item.result.overallRiskPercent,
+      sport: item.result.sportDetected,
+    }));
   };
 
   const getCoachFeedback = () => {
@@ -337,7 +360,8 @@ export function AthleteHubPage() {
         {
           date: "August 17, 2026",
           coachName: "Coach Marcus (Athletics)",
-          feedback: "Welcome to KinetIQ! Please upload your first video. Once we analyze a movement session, I'll review the joint stacking, landing mechanics, and trunk posture to give you personalized training progressions here.",
+          feedback:
+            "Welcome to KinetIQ! Please upload your first video. Once we analyze a movement session, I'll review the joint stacking, landing mechanics, and trunk posture to give you personalized training progressions here.",
           tag: "Intro",
         },
       ];
@@ -346,7 +370,9 @@ export function AthleteHubPage() {
     const latest = history[0];
     const risk = latest.result.overallRiskLevel;
     const sport = latest.result.sportDetected;
-    const injuryHist = profile.injury_history ? ` keeping your history of ${profile.injury_history} in mind.` : ".";
+    const injuryHist = profile.injury_history
+      ? ` keeping your history of ${profile.injury_history} in mind.`
+      : ".";
 
     // Generate personalized coach critiques based on session outcomes
     return [
@@ -421,7 +447,12 @@ export function AthleteHubPage() {
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-on-surface-variant hover:text-primary">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="text-on-surface-variant hover:text-primary"
+            >
               <LogOut className="h-4 w-4 mr-1" />
               Sign out
             </Button>
@@ -431,10 +462,8 @@ export function AthleteHubPage() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 pt-24 md:pt-28 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         {/* Left Panel: Profile Summary + Coach Feedback (4 Columns) */}
         <div className="lg:col-span-4 space-y-6">
-          
           {/* Profile Overview Card */}
           <Card className="glass-card ice-glow overflow-hidden">
             <CardHeader className="pb-4 border-b border-primary/10">
@@ -456,15 +485,21 @@ export function AthleteHubPage() {
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
                 <div className="bg-primary/5 border border-primary/10 rounded-lg p-2">
                   <span className="text-muted-foreground block mb-0.5">Height</span>
-                  <span className="font-semibold text-primary">{profile.height_cm ? `${profile.height_cm} cm` : "--"}</span>
+                  <span className="font-semibold text-primary">
+                    {profile.height_cm ? `${profile.height_cm} cm` : "--"}
+                  </span>
                 </div>
                 <div className="bg-primary/5 border border-primary/10 rounded-lg p-2">
                   <span className="text-muted-foreground block mb-0.5">Weight</span>
-                  <span className="font-semibold text-primary">{profile.weight_kg ? `${profile.weight_kg} kg` : "--"}</span>
+                  <span className="font-semibold text-primary">
+                    {profile.weight_kg ? `${profile.weight_kg} kg` : "--"}
+                  </span>
                 </div>
                 <div className="bg-primary/5 border border-primary/10 rounded-lg p-2">
                   <span className="text-muted-foreground block mb-0.5">Dominant</span>
-                  <span className="font-semibold text-primary capitalize">{profile.dominant_side || "--"}</span>
+                  <span className="font-semibold text-primary capitalize">
+                    {profile.dominant_side || "--"}
+                  </span>
                 </div>
               </div>
 
@@ -484,7 +519,11 @@ export function AthleteHubPage() {
               </div>
 
               <Link to="/profile" className="block">
-                <Button variant="outline" size="sm" className="w-full text-xs border-primary/20 text-primary hover:bg-primary/10">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs border-primary/20 text-primary hover:bg-primary/10"
+                >
                   Edit Biometric Details
                 </Button>
               </Link>
@@ -495,16 +534,26 @@ export function AthleteHubPage() {
           <Card className="glass-card ice-glow">
             <CardHeader className="pb-3 border-b border-primary/10 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-base font-bold text-on-surface">Coach's Corner</CardTitle>
-                <CardDescription className="text-xs text-on-surface-variant">Feedback from reviews</CardDescription>
+                <CardTitle className="text-base font-bold text-on-surface">
+                  Coach's Corner
+                </CardTitle>
+                <CardDescription className="text-xs text-on-surface-variant">
+                  Feedback from reviews
+                </CardDescription>
               </div>
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+              <Badge
+                variant="outline"
+                className="bg-primary/10 text-primary border-primary/20 text-[10px]"
+              >
                 <UserCheck className="h-3 w-3 mr-1" /> Active
               </Badge>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
               {coachFeedbacks.map((f, i) => (
-                <div key={i} className="p-3 rounded-lg bg-surface-low border border-primary/5 space-y-2">
+                <div
+                  key={i}
+                  className="p-3 rounded-lg bg-surface-low border border-primary/5 space-y-2"
+                >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-primary">{f.coachName}</span>
                     <Badge variant="outline" className="text-[10px] text-accent border-accent/20">
@@ -524,16 +573,24 @@ export function AthleteHubPage() {
 
         {/* Right Panel: Tabs for Progress, AI Coach, Rehab (8 Columns) */}
         <div className="lg:col-span-8 space-y-6">
-          
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-3 bg-card border border-primary/10 p-1 rounded-xl">
-              <TabsTrigger value="progress" className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs md:text-sm">
+              <TabsTrigger
+                value="progress"
+                className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs md:text-sm"
+              >
                 <TrendingUp className="h-4 w-4 mr-2" /> Progress Metrics
               </TabsTrigger>
-              <TabsTrigger value="aicoach" className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs md:text-sm">
+              <TabsTrigger
+                value="aicoach"
+                className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs md:text-sm"
+              >
                 <Sparkles className="h-4 w-4 mr-2" /> AI Assistant
               </TabsTrigger>
-              <TabsTrigger value="rehab" className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs md:text-sm">
+              <TabsTrigger
+                value="rehab"
+                className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs md:text-sm"
+              >
                 <Flame className="h-4 w-4 mr-2" /> Rehab Plan
               </TabsTrigger>
             </TabsList>
@@ -546,9 +603,13 @@ export function AthleteHubPage() {
                     <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/25">
                       <TrendingUp className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-xl font-bold text-on-surface">No Biomechanical Baseline Yet</h3>
+                    <h3 className="text-xl font-bold text-on-surface">
+                      No Biomechanical Baseline Yet
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Upload and analyze video clips of your squats, sprints, or batting stances on the Home dashboard to generate pose tracking metrics, posture scores, and injury risk trends.
+                      Upload and analyze video clips of your squats, sprints, or batting stances on
+                      the Home dashboard to generate pose tracking metrics, posture scores, and
+                      injury risk trends.
                     </p>
                     <Link to="/">
                       <Button className="mt-2 bg-primary/20 border border-primary/40 text-primary hover:bg-primary/30">
@@ -566,9 +627,15 @@ export function AthleteHubPage() {
                         <Sparkles className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block font-medium">Avg Posture Score</span>
+                        <span className="text-xs text-muted-foreground block font-medium">
+                          Avg Posture Score
+                        </span>
                         <span className="text-xl font-bold text-on-surface">
-                          {Math.round(history.reduce((acc, h) => acc + h.result.postureScore, 0) / history.length)}/100
+                          {Math.round(
+                            history.reduce((acc, h) => acc + h.result.postureScore, 0) /
+                              history.length,
+                          )}
+                          /100
                         </span>
                       </div>
                     </Card>
@@ -578,21 +645,36 @@ export function AthleteHubPage() {
                         <TrendingUp className="h-5 w-5 text-accent" />
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block font-medium">Avg Performance Score</span>
+                        <span className="text-xs text-muted-foreground block font-medium">
+                          Avg Performance Score
+                        </span>
                         <span className="text-xl font-bold text-on-surface">
-                          {Math.round(history.reduce((acc, h) => acc + h.result.performanceScore, 0) / history.length)}/100
+                          {Math.round(
+                            history.reduce((acc, h) => acc + h.result.performanceScore, 0) /
+                              history.length,
+                          )}
+                          /100
                         </span>
                       </div>
                     </Card>
 
                     <Card className="bg-card border border-primary/5 p-4 flex items-center gap-3">
-                      <div className={`p-3 rounded-lg ${latestAnalysis?.result.overallRiskLevel === "High" ? "bg-red-500/10 border-red-500/20" : latestAnalysis?.result.overallRiskLevel === "Medium" ? "bg-amber-500/10 border-amber-500/20" : "bg-green-500/10 border-green-500/20"}`}>
-                        <ShieldAlert className={`h-5 w-5 ${latestAnalysis?.result.overallRiskLevel === "High" ? "text-red-400" : latestAnalysis?.result.overallRiskLevel === "Medium" ? "text-amber-400" : "text-green-400"}`} />
+                      <div
+                        className={`p-3 rounded-lg ${latestAnalysis?.result.overallRiskLevel === "High" ? "bg-red-500/10 border-red-500/20" : latestAnalysis?.result.overallRiskLevel === "Medium" ? "bg-amber-500/10 border-amber-500/20" : "bg-green-500/10 border-green-500/20"}`}
+                      >
+                        <ShieldAlert
+                          className={`h-5 w-5 ${latestAnalysis?.result.overallRiskLevel === "High" ? "text-red-400" : latestAnalysis?.result.overallRiskLevel === "Medium" ? "text-amber-400" : "text-green-400"}`}
+                        />
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block font-medium">Current Injury Risk</span>
-                        <span className={`text-xl font-bold ${latestAnalysis?.result.overallRiskLevel === "High" ? "text-red-400" : latestAnalysis?.result.overallRiskLevel === "Medium" ? "text-amber-400" : "text-green-400"}`}>
-                          {latestAnalysis?.result.overallRiskLevel || "Low"} ({latestAnalysis?.result.overallRiskPercent}%)
+                        <span className="text-xs text-muted-foreground block font-medium">
+                          Current Injury Risk
+                        </span>
+                        <span
+                          className={`text-xl font-bold ${latestAnalysis?.result.overallRiskLevel === "High" ? "text-red-400" : latestAnalysis?.result.overallRiskLevel === "Medium" ? "text-amber-400" : "text-green-400"}`}
+                        >
+                          {latestAnalysis?.result.overallRiskLevel || "Low"} (
+                          {latestAnalysis?.result.overallRiskPercent}%)
                         </span>
                       </div>
                     </Card>
@@ -601,7 +683,9 @@ export function AthleteHubPage() {
                   {/* Chart Card */}
                   <Card className="glass-card ice-glow">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-lg font-bold text-on-surface">Longitudinal Progress Trends</CardTitle>
+                      <CardTitle className="text-lg font-bold text-on-surface">
+                        Longitudinal Progress Trends
+                      </CardTitle>
                       <CardDescription className="text-xs text-on-surface-variant">
                         Tracking posture &amp; performance improvements over successive runs
                       </CardDescription>
@@ -612,7 +696,12 @@ export function AthleteHubPage() {
                           <LineChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(125,211,252,0.05)" />
                             <XAxis dataKey="date" stroke="#a0b4c4" fontSize={11} tickLine={false} />
-                            <YAxis stroke="#a0b4c4" fontSize={11} tickLine={false} domain={[0, 100]} />
+                            <YAxis
+                              stroke="#a0b4c4"
+                              fontSize={11}
+                              tickLine={false}
+                              domain={[0, 100]}
+                            />
                             <RechartsTooltip
                               contentStyle={{
                                 backgroundColor: "#0f1524",
@@ -655,7 +744,9 @@ export function AthleteHubPage() {
                   {/* Latest Findings Summary */}
                   <Card className="bg-card border border-primary/5">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base font-bold text-on-surface">Active Session Biomechanical Details</CardTitle>
+                      <CardTitle className="text-base font-bold text-on-surface">
+                        Active Session Biomechanical Details
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {latestAnalysis ? (
@@ -663,11 +754,15 @@ export function AthleteHubPage() {
                           <div className="p-3 bg-surface-low border border-primary/5 rounded-lg flex justify-between items-center text-xs">
                             <div>
                               <span className="text-muted-foreground block">Session Type</span>
-                              <span className="font-semibold text-on-surface capitalize">{latestAnalysis.result.sportDetected}</span>
+                              <span className="font-semibold text-on-surface capitalize">
+                                {latestAnalysis.result.sportDetected}
+                              </span>
                             </div>
                             <div>
                               <span className="text-muted-foreground block">File Analyzed</span>
-                              <span className="font-semibold text-on-surface max-w-[150px] truncate block">{latestAnalysis.fileName}</span>
+                              <span className="font-semibold text-on-surface max-w-[150px] truncate block">
+                                {latestAnalysis.fileName}
+                              </span>
                             </div>
                             <div>
                               <span className="text-muted-foreground block">Date Analyzed</span>
@@ -678,12 +773,21 @@ export function AthleteHubPage() {
                           </div>
 
                           <div className="space-y-2">
-                            <span className="text-xs font-semibold text-primary block">Key Biomechanical Observations</span>
+                            <span className="text-xs font-semibold text-primary block">
+                              Key Biomechanical Observations
+                            </span>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                               {latestAnalysis.result.techniqueFindings.slice(0, 4).map((f, i) => (
-                                <div key={i} className="p-2.5 bg-surface-low border border-primary/5 rounded-lg">
-                                  <span className="font-semibold text-accent block mb-1">{f.area}</span>
-                                  <p className="text-muted-foreground leading-relaxed">{f.observation}</p>
+                                <div
+                                  key={i}
+                                  className="p-2.5 bg-surface-low border border-primary/5 rounded-lg"
+                                >
+                                  <span className="font-semibold text-accent block mb-1">
+                                    {f.area}
+                                  </span>
+                                  <p className="text-muted-foreground leading-relaxed">
+                                    {f.observation}
+                                  </p>
                                 </div>
                               ))}
                             </div>
@@ -710,7 +814,10 @@ export function AthleteHubPage() {
                       Personalized recovery, kinematics advice, and athletic form strategies
                     </CardDescription>
                   </div>
-                  <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary text-[10px]">
+                  <Badge
+                    variant="outline"
+                    className="bg-primary/10 border-primary/20 text-primary text-[10px]"
+                  >
                     Gemini 3.5 Active
                   </Badge>
                 </CardHeader>
@@ -747,21 +854,36 @@ export function AthleteHubPage() {
                 {/* Recommended quick-start queries */}
                 <div className="px-4 py-2 border-t border-primary/10 flex gap-2 flex-wrap max-h-[75px] overflow-y-auto font-body text-[10px]">
                   <button
-                    onClick={() => handleSendChat(undefined, "Generate a detailed weekly rehabilitation plan based on my scores.")}
+                    onClick={() =>
+                      handleSendChat(
+                        undefined,
+                        "Generate a detailed weekly rehabilitation plan based on my scores.",
+                      )
+                    }
                     disabled={sendingChat}
                     className="px-2.5 py-1 rounded-full border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 font-medium transition-all"
                   >
                     Generate Rehab Routine
                   </button>
                   <button
-                    onClick={() => handleSendChat(undefined, "Explain my primary injury risk indicators and how to avoid them.")}
+                    onClick={() =>
+                      handleSendChat(
+                        undefined,
+                        "Explain my primary injury risk indicators and how to avoid them.",
+                      )
+                    }
                     disabled={sendingChat}
                     className="px-2.5 py-1 rounded-full border border-accent/20 text-accent bg-accent/5 hover:bg-accent/10 font-medium transition-all"
                   >
                     Explain Injury Risk
                   </button>
                   <button
-                    onClick={() => handleSendChat(undefined, "Give me 3 technique recommendations for landing stability.")}
+                    onClick={() =>
+                      handleSendChat(
+                        undefined,
+                        "Give me 3 technique recommendations for landing stability.",
+                      )
+                    }
                     disabled={sendingChat}
                     className="px-2.5 py-1 rounded-full border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 font-medium transition-all"
                   >
@@ -770,7 +892,10 @@ export function AthleteHubPage() {
                 </div>
 
                 {/* Chat Form */}
-                <form onSubmit={handleSendChat} className="p-3 border-t border-primary/10 flex gap-2 bg-card">
+                <form
+                  onSubmit={handleSendChat}
+                  className="p-3 border-t border-primary/10 flex gap-2 bg-card"
+                >
                   <Textarea
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
@@ -784,7 +909,11 @@ export function AthleteHubPage() {
                       }
                     }}
                   />
-                  <Button type="submit" disabled={sendingChat || !chatInput.trim()} className="bg-primary text-primary-foreground hover:opacity-90 h-10 w-10 p-0 rounded-lg shrink-0">
+                  <Button
+                    type="submit"
+                    disabled={sendingChat || !chatInput.trim()}
+                    className="bg-primary text-primary-foreground hover:opacity-90 h-10 w-10 p-0 rounded-lg shrink-0"
+                  >
                     <Send className="h-4 w-4" />
                   </Button>
                 </form>
@@ -793,7 +922,6 @@ export function AthleteHubPage() {
 
             {/* TAB 3: REHABILITATION & PREHAB PLAN */}
             <TabsContent value="rehab" className="mt-4 space-y-6">
-              
               {/* Gamification Dashboard header */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="bg-card border border-primary/5 p-4 flex items-center justify-between">
@@ -802,12 +930,15 @@ export function AthleteHubPage() {
                       <Flame className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <span className="text-xs text-muted-foreground block font-medium">Rehab Streak</span>
+                      <span className="text-xs text-muted-foreground block font-medium">
+                        Rehab Streak
+                      </span>
                       <span className="text-xl font-bold text-on-surface">{rehabStreak} Days</span>
                     </div>
                   </div>
                   <span className="text-[10px] text-muted-foreground bg-primary/5 border border-primary/10 px-2 py-0.5 rounded-full">
-                    Completed Today: {Object.values(completedExercises).filter(Boolean).length} / {activeRehabExercises.length}
+                    Completed Today: {Object.values(completedExercises).filter(Boolean).length} /{" "}
+                    {activeRehabExercises.length}
                   </span>
                 </Card>
 
@@ -816,14 +947,25 @@ export function AthleteHubPage() {
                     <CheckCircle2 className="h-5 w-5 text-green-400" />
                   </div>
                   <div className="flex-1">
-                    <span className="text-xs text-muted-foreground block font-medium">Daily Goal Progress</span>
+                    <span className="text-xs text-muted-foreground block font-medium">
+                      Daily Goal Progress
+                    </span>
                     <div className="flex items-center gap-2 mt-1">
                       <Progress
-                        value={(Object.values(completedExercises).filter(Boolean).length / activeRehabExercises.length) * 100}
+                        value={
+                          (Object.values(completedExercises).filter(Boolean).length /
+                            activeRehabExercises.length) *
+                          100
+                        }
                         className="h-2 flex-1 bg-surface-lowest"
                       />
                       <span className="text-xs font-semibold text-on-surface whitespace-nowrap">
-                        {Math.round((Object.values(completedExercises).filter(Boolean).length / activeRehabExercises.length) * 100)}%
+                        {Math.round(
+                          (Object.values(completedExercises).filter(Boolean).length /
+                            activeRehabExercises.length) *
+                            100,
+                        )}
+                        %
                       </span>
                     </div>
                   </div>
@@ -833,9 +975,12 @@ export function AthleteHubPage() {
               {/* Exercises List Checklist */}
               <Card className="glass-card ice-glow">
                 <CardHeader className="pb-3 border-b border-primary/10">
-                  <CardTitle className="text-base font-bold text-on-surface">Assigned Corrective &amp; Prehab Exercises</CardTitle>
+                  <CardTitle className="text-base font-bold text-on-surface">
+                    Assigned Corrective &amp; Prehab Exercises
+                  </CardTitle>
                   <CardDescription className="text-xs text-on-surface-variant">
-                    Generated from your latest session findings to support muscle activation and joints
+                    Generated from your latest session findings to support muscle activation and
+                    joints
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4 divide-y divide-primary/5">
@@ -855,15 +1000,23 @@ export function AthleteHubPage() {
                           )}
                         </button>
                         <div>
-                          <span className={`font-semibold ${completedExercises[item.exercise] ? "line-through text-muted-foreground" : "text-on-surface"}`}>
+                          <span
+                            className={`font-semibold ${completedExercises[item.exercise] ? "line-through text-muted-foreground" : "text-on-surface"}`}
+                          >
                             {item.exercise}
                           </span>
                           <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
-                            <span>Sets: <strong className="text-primary">{item.sets}</strong></span>
+                            <span>
+                              Sets: <strong className="text-primary">{item.sets}</strong>
+                            </span>
                             <span>·</span>
-                            <span>Reps: <strong className="text-primary">{item.reps}</strong></span>
+                            <span>
+                              Reps: <strong className="text-primary">{item.reps}</strong>
+                            </span>
                             <span>·</span>
-                            <span className="bg-primary/5 border border-primary/10 px-1.5 py-0.5 rounded text-accent">Target: {item.target}</span>
+                            <span className="bg-primary/5 border border-primary/10 px-1.5 py-0.5 rounded text-accent">
+                              Target: {item.target}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -876,7 +1029,9 @@ export function AthleteHubPage() {
               {/* Training log calendars and indicators */}
               <Card className="bg-card border border-primary/5">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-bold text-on-surface">Streak Calendar</CardTitle>
+                  <CardTitle className="text-sm font-bold text-on-surface">
+                    Streak Calendar
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="text-xs text-muted-foreground">
                   <div className="flex gap-1 justify-between text-center overflow-x-auto py-2">
@@ -885,7 +1040,11 @@ export function AthleteHubPage() {
                       day.setDate(day.getDate() - (6 - idx));
                       const isToday = idx === 6;
                       const dateStr = day.toDateString();
-                      const done = dateStr === lastCompletedDate || (isToday && Object.values(completedExercises).filter(Boolean).length === activeRehabExercises.length);
+                      const done =
+                        dateStr === lastCompletedDate ||
+                        (isToday &&
+                          Object.values(completedExercises).filter(Boolean).length ===
+                            activeRehabExercises.length);
 
                       return (
                         <div key={idx} className="flex flex-col items-center gap-1.5 min-w-[40px]">
@@ -897,18 +1056,23 @@ export function AthleteHubPage() {
                               done
                                 ? "bg-primary/20 border-primary text-primary"
                                 : isToday
-                                ? "bg-surface-low border-primary/20 text-on-surface-variant font-bold animate-pulse"
-                                : "bg-surface-lowest border-primary/5 text-muted-foreground/45"
+                                  ? "bg-surface-low border-primary/20 text-on-surface-variant font-bold animate-pulse"
+                                  : "bg-surface-lowest border-primary/5 text-muted-foreground/45"
                             }`}
                           >
-                            {done ? <Flame className="h-4 w-4 fill-primary text-primary" /> : day.getDate()}
+                            {done ? (
+                              <Flame className="h-4 w-4 fill-primary text-primary" />
+                            ) : (
+                              day.getDate()
+                            )}
                           </div>
                         </div>
                       );
                     })}
                   </div>
                   <p className="text-[10px] text-on-surface-variant text-center mt-3 leading-relaxed">
-                    Consistent daily training improves muscle recovery, increases joint stability scores, and reduces future risk signals by up to 45%.
+                    Consistent daily training improves muscle recovery, increases joint stability
+                    scores, and reduces future risk signals by up to 45%.
                   </p>
                 </CardContent>
               </Card>
@@ -919,7 +1083,6 @@ export function AthleteHubPage() {
     </div>
   );
 }
-
 
 // -------------------------------------------------------------
 // COACH PORTAL DASHBOARD COMPONENT
@@ -947,27 +1110,69 @@ const MOCK_ATHLETES = [
       sport: "Sprint Start Analysis",
       clipName: "sprint_blocks_side.mp4",
       findings: [
-        { area: "Right-side loading asymmetry", observation: "Right leg taking 14% more deceleration load on ground contact." },
-        { area: "Trunk Extension", observation: "Torso lean angle excessive at 48 degrees relative to blocks." },
-        { area: "Landing Stability", observation: "Reduced ankle stability on initial steps." }
+        {
+          area: "Right-side loading asymmetry",
+          observation: "Right leg taking 14% more deceleration load on ground contact.",
+        },
+        {
+          area: "Trunk Extension",
+          observation: "Torso lean angle excessive at 48 degrees relative to blocks.",
+        },
+        { area: "Landing Stability", observation: "Reduced ankle stability on initial steps." },
       ],
       keyframes: [
-        { time: "0.00s", event: "Block Launch", angleLabel: "Knee Extension", angleVal: "115°", stress: "Low", color: "text-green-600 bg-green-500/10 border-green-500/20" },
-        { time: "0.45s", event: "Initial Stride", angleLabel: "Hip Stacking", angleVal: "168°", stress: "Medium", color: "text-amber-600 bg-amber-500/10 border-amber-500/20" },
-        { time: "0.90s", event: "Third Foot Strike", angleLabel: "Right Knee Valgus", angleVal: "12° deviation", stress: "High", color: "text-red-600 bg-red-500/10 border-red-500/20" }
-      ]
+        {
+          time: "0.00s",
+          event: "Block Launch",
+          angleLabel: "Knee Extension",
+          angleVal: "115°",
+          stress: "Low",
+          color: "text-green-600 bg-green-500/10 border-green-500/20",
+        },
+        {
+          time: "0.45s",
+          event: "Initial Stride",
+          angleLabel: "Hip Stacking",
+          angleVal: "168°",
+          stress: "Medium",
+          color: "text-amber-600 bg-amber-500/10 border-amber-500/20",
+        },
+        {
+          time: "0.90s",
+          event: "Third Foot Strike",
+          angleLabel: "Right Knee Valgus",
+          angleVal: "12° deviation",
+          stress: "High",
+          color: "text-red-600 bg-red-500/10 border-red-500/20",
+        },
+      ],
     },
     recovery: {
       sleep: 88,
       hydration: 92,
       soreness: "None",
-      load: "Optimal (3,100 AU)"
+      load: "Optimal (3,100 AU)",
     },
     defaultTasks: [
-      { exercise: "Glute Bridges", sets: "3", reps: "12", target: "Hip Stability & Landing Softness" },
-      { exercise: "Single-Leg Balance Stance", sets: "3", reps: "30s hold", target: "Ankle & Knee Alignment" },
-      { exercise: "Ankle Dorsiflexion Stretch", sets: "2", reps: "10", target: "Deceleration Shock Absorption" }
-    ]
+      {
+        exercise: "Glute Bridges",
+        sets: "3",
+        reps: "12",
+        target: "Hip Stability & Landing Softness",
+      },
+      {
+        exercise: "Single-Leg Balance Stance",
+        sets: "3",
+        reps: "30s hold",
+        target: "Ankle & Knee Alignment",
+      },
+      {
+        exercise: "Ankle Dorsiflexion Stretch",
+        sets: "2",
+        reps: "10",
+        target: "Deceleration Shock Absorption",
+      },
+    ],
   },
   {
     id: "athlete-2",
@@ -990,27 +1195,69 @@ const MOCK_ATHLETES = [
       sport: "Basketball Jump Landing",
       clipName: "delivery_stride_rear.mp4",
       findings: [
-        { area: "Foot Strike Alignment", observation: "Significant landing foot heel rotation detected." },
-        { area: "Joint Stacking", observation: "Knee extension angle at landing is 142 degrees (sub-optimal)." },
-        { area: "Landing Instability", observation: "Asymmetrical loading on knee joint." }
+        {
+          area: "Foot Strike Alignment",
+          observation: "Significant landing foot heel rotation detected.",
+        },
+        {
+          area: "Joint Stacking",
+          observation: "Knee extension angle at landing is 142 degrees (sub-optimal).",
+        },
+        { area: "Landing Instability", observation: "Asymmetrical loading on knee joint." },
       ],
       keyframes: [
-        { time: "0.00s", event: "Back Foot Landing", angleLabel: "Knee Flexion", angleVal: "138°", stress: "Medium", color: "text-amber-600 bg-amber-500/10 border-amber-500/20" },
-        { time: "0.32s", event: "Front Foot Plant", angleLabel: "Knee Extension", angleVal: "142° (Sub-optimal)", stress: "High", color: "text-red-600 bg-red-500/10 border-red-500/20" },
-        { time: "0.65s", event: "Release & Follow", angleLabel: "Shoulder Rotation", angleVal: "88°", stress: "Low", color: "text-green-600 bg-green-500/10 border-green-500/20" }
-      ]
+        {
+          time: "0.00s",
+          event: "Back Foot Landing",
+          angleLabel: "Knee Flexion",
+          angleVal: "138°",
+          stress: "Medium",
+          color: "text-amber-600 bg-amber-500/10 border-amber-500/20",
+        },
+        {
+          time: "0.32s",
+          event: "Front Foot Plant",
+          angleLabel: "Knee Extension",
+          angleVal: "142° (Sub-optimal)",
+          stress: "High",
+          color: "text-red-600 bg-red-500/10 border-red-500/20",
+        },
+        {
+          time: "0.65s",
+          event: "Release & Follow",
+          angleLabel: "Shoulder Rotation",
+          angleVal: "88°",
+          stress: "Low",
+          color: "text-green-600 bg-green-500/10 border-green-500/20",
+        },
+      ],
     },
     recovery: {
       sleep: 68,
       hydration: 76,
       soreness: "High (Quads/Knee)",
-      load: "Overload (4,500 AU)"
+      load: "Overload (4,500 AU)",
     },
     defaultTasks: [
-      { exercise: "Eccentric Calf Raises", sets: "3", reps: "10", target: "Tendinous loading resistance" },
-      { exercise: "Front Leg Block Isometric Holds", sets: "3", reps: "10s hold", target: "Block stability at release" },
-      { exercise: "Hamstring Bridges", sets: "3", reps: "12", target: "Hamstring deceleration control" }
-    ]
+      {
+        exercise: "Eccentric Calf Raises",
+        sets: "3",
+        reps: "10",
+        target: "Tendinous loading resistance",
+      },
+      {
+        exercise: "Front Leg Block Isometric Holds",
+        sets: "3",
+        reps: "10s hold",
+        target: "Block stability at release",
+      },
+      {
+        exercise: "Hamstring Bridges",
+        sets: "3",
+        reps: "12",
+        target: "Hamstring deceleration control",
+      },
+    ],
   },
   {
     id: "athlete-3",
@@ -1033,44 +1280,84 @@ const MOCK_ATHLETES = [
       sport: "Change of Direction cut",
       clipName: "cod_shuttle_test.mp4",
       findings: [
-        { area: "Torso Lean", observation: "Torso lean slightly excessive during sharp lateral cuts." },
-        { area: "Deceleration Angle", observation: "Good ankle alignment during deceleration phase." }
+        {
+          area: "Torso Lean",
+          observation: "Torso lean slightly excessive during sharp lateral cuts.",
+        },
+        {
+          area: "Deceleration Angle",
+          observation: "Good ankle alignment during deceleration phase.",
+        },
       ],
       keyframes: [
-        { time: "0.00s", event: "Approaching Cut", angleLabel: "Hip Flexion", angleVal: "62°", stress: "Low", color: "text-green-600 bg-green-500/10 border-green-500/20" },
-        { time: "0.50s", event: "Lateral Plant", angleLabel: "Torso Lateral Lean", angleVal: "18° deviation", stress: "Medium", color: "text-amber-600 bg-amber-500/10 border-amber-500/20" },
-        { time: "1.10s", event: "Deceleration Push", angleLabel: "Ankle Dorsiflexion", angleVal: "24°", stress: "Low", color: "text-green-600 bg-green-500/10 border-green-500/20" }
-      ]
+        {
+          time: "0.00s",
+          event: "Approaching Cut",
+          angleLabel: "Hip Flexion",
+          angleVal: "62°",
+          stress: "Low",
+          color: "text-green-600 bg-green-500/10 border-green-500/20",
+        },
+        {
+          time: "0.50s",
+          event: "Lateral Plant",
+          angleLabel: "Torso Lateral Lean",
+          angleVal: "18° deviation",
+          stress: "Medium",
+          color: "text-amber-600 bg-amber-500/10 border-amber-500/20",
+        },
+        {
+          time: "1.10s",
+          event: "Deceleration Push",
+          angleLabel: "Ankle Dorsiflexion",
+          angleVal: "24°",
+          stress: "Low",
+          color: "text-green-600 bg-green-500/10 border-green-500/20",
+        },
+      ],
     },
     recovery: {
       sleep: 82,
       hydration: 88,
       soreness: "Mild (Hamstrings)",
-      load: "Balanced (2,800 AU)"
+      load: "Balanced (2,800 AU)",
     },
     defaultTasks: [
-      { exercise: "Lateral Band Walks", sets: "3", reps: "15", target: "Gluteus medius cut activation" },
-      { exercise: "Ankle Dorsiflexion Stretch", sets: "2", reps: "10", target: "Dorsiflexion flexibility" }
-    ]
-  }
+      {
+        exercise: "Lateral Band Walks",
+        sets: "3",
+        reps: "15",
+        target: "Gluteus medius cut activation",
+      },
+      {
+        exercise: "Ankle Dorsiflexion Stretch",
+        sets: "2",
+        reps: "10",
+        target: "Dorsiflexion flexibility",
+      },
+    ],
+  },
 ];
 
 const PRESETS = [
   {
     title: "Knee Valgus Correction",
     desc: "Target block launch / landing stability",
-    feedback: "Focus on stabilizing the knee joint. Recommended prehab:\n- Glute Bridges: 3 sets of 12 reps (Focus on hip stability)\n- Lateral Band Walks: 3 sets of 15 reps (Activate gluteus medius)\n- Single-Leg Balances: 3 sets of 30s (Ankle stabilization)"
+    feedback:
+      "Focus on stabilizing the knee joint. Recommended prehab:\n- Glute Bridges: 3 sets of 12 reps (Focus on hip stability)\n- Lateral Band Walks: 3 sets of 15 reps (Activate gluteus medius)\n- Single-Leg Balances: 3 sets of 30s (Ankle stabilization)",
   },
   {
     title: "Deceleration Shock Absorption",
     desc: "Target high landing forces",
-    feedback: "High ground reaction impact detected. Recommended routine:\n- Box Drop Landings: 3 sets of 8 reps (Focus on soft landing flexion)\n- Eccentric Calf Raises: 3 sets of 10 reps (Tendinous loading resistance)\n- Tibialis Raises: 3 sets of 20 reps (Anterior shin shock absorption)"
+    feedback:
+      "High ground reaction impact detected. Recommended routine:\n- Box Drop Landings: 3 sets of 8 reps (Focus on soft landing flexion)\n- Eccentric Calf Raises: 3 sets of 10 reps (Tendinous loading resistance)\n- Tibialis Raises: 3 sets of 20 reps (Anterior shin shock absorption)",
   },
   {
     title: "Fast Bowling Extension",
     desc: "Target front-leg block plant",
-    feedback: "Address the sub-optimal knee extension at delivery stride. Prescribed drills:\n- Front Leg Block isometric holds: 3 sets of 10s\n- Hamstring Bridges: 3 sets of 12 reps\n- Quad-Hamstring co-contraction drills: 3 sets of 15 reps"
-  }
+    feedback:
+      "Address the sub-optimal knee extension at delivery stride. Prescribed drills:\n- Front Leg Block isometric holds: 3 sets of 10s\n- Hamstring Bridges: 3 sets of 12 reps\n- Quad-Hamstring co-contraction drills: 3 sets of 15 reps",
+  },
 ];
 
 interface CoachDashboardProps {
@@ -1082,15 +1369,21 @@ interface CoachDashboardProps {
 
 export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashboardProps) {
   // Navigation tabs for Coach experience
-  const [activeView, setActiveView] = useState<"dashboard" | "athletes" | "sessions" | "alerts" | "reports">("dashboard");
+  const [activeView, setActiveView] = useState<
+    "dashboard" | "athletes" | "sessions" | "alerts" | "reports"
+  >("dashboard");
   const [selectedAthlete, setSelectedAthlete] = useState<any>(null);
-  
+
   // Athlete Detail subtabs
-  const [detailTab, setDetailTab] = useState<"overview" | "analysis" | "progress" | "rehab" | "feedback">("overview");
+  const [detailTab, setDetailTab] = useState<
+    "overview" | "analysis" | "progress" | "rehab" | "feedback"
+  >("overview");
   const [selectedKeyframe, setSelectedKeyframe] = useState<any>(null);
-  
+
   // Progress timeframe switcher
-  const [timeframe, setTimeframe] = useState<"7_sessions" | "30_days" | "3_months" | "season">("7_sessions");
+  const [timeframe, setTimeframe] = useState<"7_sessions" | "30_days" | "3_months" | "season">(
+    "7_sessions",
+  );
   const [selectedModel, setSelectedModel] = useState<string>("gemini-3.5-flash");
   const [granularity, setGranularity] = useState<"quick" | "standard" | "deep">("standard");
   const [assignedAthleteId, setAssignedAthleteId] = useState<string>("none");
@@ -1134,8 +1427,9 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
   const [coachChatMessages, setCoachChatMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      content: "Hello Coach Marcus! I am your AI Sports Science assistant. How can I help you analyze your team performance, prioritize risk levels, or write custom training programs today?"
-    }
+      content:
+        "Hello Coach Marcus! I am your AI Sports Science assistant. How can I help you analyze your team performance, prioritize risk levels, or write custom training programs today?",
+    },
   ]);
   const [coachChatInput, setCoachChatInput] = useState("");
   const [sendingCoachChat, setSendingCoachChat] = useState(false);
@@ -1180,7 +1474,7 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
       exercise: newTaskName,
       sets: newTaskSets,
       reps: newTaskReps,
-      target: newTaskTarget || "General Conditioning"
+      target: newTaskTarget || "General Conditioning",
     };
 
     const updated = [...customTasks, newTask];
@@ -1211,13 +1505,21 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
     const newSuggestion = {
       id: Math.random().toString(36).substring(2, 15),
-      timestamp: new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
-      text: personalSuggestionInput
+      timestamp: new Date().toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: personalSuggestionInput,
     };
 
     const updated = [newSuggestion, ...personalSuggestions];
     setPersonalSuggestions(updated);
-    localStorage.setItem(`kinetiq.coach.suggestions.${selectedAthlete.id}`, JSON.stringify(updated));
+    localStorage.setItem(
+      `kinetiq.coach.suggestions.${selectedAthlete.id}`,
+      JSON.stringify(updated),
+    );
     toast.success(`Sent suggestion to ${selectedAthlete.name}`);
     setPersonalSuggestionInput("");
   };
@@ -1251,18 +1553,24 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
             overallRiskPercent: targetAthlete.injuryRiskPercent,
             postureScore: targetAthlete.postureScore,
             performanceScore: targetAthlete.performanceScore,
-            scores: { stability: targetAthlete.stabilityScore, alignment: targetAthlete.postureScore, landing: targetAthlete.postureScore, balance: targetAthlete.postureScore, fatigue: 15 },
+            scores: {
+              stability: targetAthlete.stabilityScore,
+              alignment: targetAthlete.postureScore,
+              landing: targetAthlete.postureScore,
+              balance: targetAthlete.postureScore,
+              fatigue: 15,
+            },
             injuryRisks: [],
             techniqueFindings: targetAthlete.recentRun.findings,
-            preventionExercises: []
+            preventionExercises: [],
           },
           profile: {
             display_name: targetAthlete.name,
             primary_sport: targetAthlete.sport,
-            position: targetAthlete.discipline
+            position: targetAthlete.discipline,
           },
-          messages: newMessages
-        }
+          messages: newMessages,
+        },
       });
 
       if (response && response.response) {
@@ -1272,7 +1580,7 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
       toast.error("Failed to query AI Assistant");
       setCoachChatMessages([
         ...newMessages,
-        { role: "assistant", content: "Sorry, I had trouble reaching my AI processing center." }
+        { role: "assistant", content: "Sorry, I had trouble reaching my AI processing center." },
       ]);
     } finally {
       setSendingCoachChat(false);
@@ -1295,10 +1603,14 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
       }
 
       const newReview = {
-        date: new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }),
+        date: new Date().toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
         coachName: profile.display_name || profile.full_name || user.email || "Marcus",
         feedback: feedbackText,
-        tag: feedbackTag
+        tag: feedbackTag,
       };
 
       localStorage.setItem(customFeedbackKey, JSON.stringify([newReview, ...parsedReviews]));
@@ -1322,9 +1634,13 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
   // Filter roster list
   const filteredAthletes = MOCK_ATHLETES.filter((a) => {
-    const matchesSearch = a.name.toLowerCase().includes(searchQuery.toLowerCase()) || a.sport.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRisk = riskFilter === "all" || a.injuryRisk.toLowerCase() === riskFilter.toLowerCase();
-    const matchesSport = sportFilter === "all" || a.sport.toLowerCase() === sportFilter.toLowerCase();
+    const matchesSearch =
+      a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.sport.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRisk =
+      riskFilter === "all" || a.injuryRisk.toLowerCase() === riskFilter.toLowerCase();
+    const matchesSport =
+      sportFilter === "all" || a.sport.toLowerCase() === sportFilter.toLowerCase();
     return matchesSearch && matchesRisk && matchesSport;
   });
 
@@ -1334,46 +1650,69 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 shadow-sm">
         <nav className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
           <button
-            onClick={() => { setSelectedAthlete(null); setActiveView("dashboard"); }}
+            onClick={() => {
+              setSelectedAthlete(null);
+              setActiveView("dashboard");
+            }}
             className="text-2xl font-headline font-bold tracking-tight text-primary flex items-center gap-2 text-left"
           >
             <Activity className="h-6 w-6 text-primary animate-pulse" />
-            <span className="bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">KinetIQ Coach Command</span>
+            <span className="bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">
+              KinetIQ Coach Command
+            </span>
           </button>
-          
+
           <div className="hidden md:flex items-center gap-6 text-xs font-bold uppercase tracking-wider">
             <button
-              onClick={() => { setSelectedAthlete(null); setActiveView("dashboard"); }}
+              onClick={() => {
+                setSelectedAthlete(null);
+                setActiveView("dashboard");
+              }}
               className={`pb-1 transition-colors ${activeView === "dashboard" && !selectedAthlete ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-primary"}`}
             >
               Dashboard
             </button>
             <button
-              onClick={() => { setSelectedAthlete(null); setActiveView("upload" as any); }}
+              onClick={() => {
+                setSelectedAthlete(null);
+                setActiveView("upload" as any);
+              }}
               className={`pb-1 transition-colors ${activeView === ("upload" as any) && !selectedAthlete ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-primary"}`}
             >
               Pose Analysis
             </button>
             <button
-              onClick={() => { setSelectedAthlete(null); setActiveView("athletes"); }}
+              onClick={() => {
+                setSelectedAthlete(null);
+                setActiveView("athletes");
+              }}
               className={`pb-1 transition-colors ${activeView === "athletes" && !selectedAthlete ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-primary"}`}
             >
               Athletes
             </button>
             <button
-              onClick={() => { setSelectedAthlete(null); setActiveView("sessions"); }}
+              onClick={() => {
+                setSelectedAthlete(null);
+                setActiveView("sessions");
+              }}
               className={`pb-1 transition-colors ${activeView === "sessions" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-primary"}`}
             >
               Sessions
             </button>
             <button
-              onClick={() => { setSelectedAthlete(null); setActiveView("alerts"); }}
+              onClick={() => {
+                setSelectedAthlete(null);
+                setActiveView("alerts");
+              }}
               className={`pb-1 transition-colors ${activeView === "alerts" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-primary"}`}
             >
               Risk &amp; Alerts
             </button>
             <button
-              onClick={() => { setSelectedAthlete(null); setActiveView("reports"); }}
+              onClick={() => {
+                setSelectedAthlete(null);
+                setActiveView("reports");
+              }}
               className={`pb-1 transition-colors ${activeView === "reports" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-primary"}`}
             >
               Reports
@@ -1405,16 +1744,22 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
       {/* Main Workspace */}
       <main className="max-w-7xl mx-auto px-6 pt-24">
-        
         {/* VIEW 1: Team Dashboard (Default Home) */}
         {activeView === "dashboard" && !selectedAthlete && (
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-4">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-800">Good evening, Coach Marcus</h2>
-                <p className="text-sm text-muted-foreground">Here's what needs your attention today across the team.</p>
+                <h2 className="text-2xl font-bold tracking-tight text-slate-800">
+                  Good evening, Coach Marcus
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Here's what needs your attention today across the team.
+                </p>
               </div>
-              <Button onClick={handleCopyInviteLink} className="bg-primary hover:bg-primary/90 text-white text-xs h-9">
+              <Button
+                onClick={handleCopyInviteLink}
+                className="bg-primary hover:bg-primary/90 text-white text-xs h-9"
+              >
                 <Share2 className="h-4 w-4 mr-2" /> Share Connection Link
               </Button>
             </div>
@@ -1423,35 +1768,53 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="glass-card ice-glow p-4 flex flex-col justify-between">
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Total Athletes</span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                    Total Athletes
+                  </span>
                   <h3 className="text-3xl font-extrabold text-primary mt-1">24</h3>
                 </div>
-                <span className="text-[10px] text-emerald-600 font-semibold mt-2 block">● Active rosters linked</span>
+                <span className="text-[10px] text-emerald-600 font-semibold mt-2 block">
+                  ● Active rosters linked
+                </span>
               </Card>
               <Card className="glass-card ice-glow p-4 flex flex-col justify-between border-l-4 border-l-red-500">
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">High Risk</span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                    High Risk
+                  </span>
                   <h3 className="text-3xl font-extrabold text-red-500 mt-1">3</h3>
                 </div>
-                <button onClick={() => setActiveView("alerts")} className="text-[10px] text-red-500 font-semibold hover:underline mt-2 block text-left">
+                <button
+                  onClick={() => setActiveView("alerts")}
+                  className="text-[10px] text-red-500 font-semibold hover:underline mt-2 block text-left"
+                >
                   Review anomalies now →
                 </button>
               </Card>
               <Card className="glass-card ice-glow p-4 flex flex-col justify-between">
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Sessions Today</span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                    Sessions Today
+                  </span>
                   <h3 className="text-3xl font-extrabold text-primary mt-1">8</h3>
                 </div>
-                <button onClick={() => setActiveView("sessions")} className="text-[10px] text-primary font-semibold hover:underline mt-2 block text-left">
+                <button
+                  onClick={() => setActiveView("sessions")}
+                  className="text-[10px] text-primary font-semibold hover:underline mt-2 block text-left"
+                >
                   Inspect footage uploads →
                 </button>
               </Card>
               <Card className="glass-card ice-glow p-4 flex flex-col justify-between border-l-4 border-l-emerald-500">
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Improving Athletes</span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                    Improving Athletes
+                  </span>
                   <h3 className="text-3xl font-extrabold text-emerald-600 mt-1">17</h3>
                 </div>
-                <span className="text-[10px] text-emerald-600 font-semibold mt-2 block">● Decreased risk scores</span>
+                <span className="text-[10px] text-emerald-600 font-semibold mt-2 block">
+                  ● Decreased risk scores
+                </span>
               </Card>
             </div>
 
@@ -1465,25 +1828,39 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                       <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-primary" /> Team Performance Index
                       </h4>
-                      <p className="text-[10px] text-muted-foreground">Team-wide performance averages and loading metrics over last 10 days</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Team-wide performance averages and loading metrics over last 10 days
+                      </p>
                     </div>
                   </div>
-                  
+
                   {/* Simulated Line graph container */}
                   <div className="h-64 flex flex-col justify-between pt-4">
                     <div className="flex-1 flex items-end justify-between gap-2 px-4 pb-2">
                       {[72, 74, 73, 76, 78, 80, 81, 79, 83, 82].map((val, idx) => (
                         <div key={idx} className="flex-1 flex flex-col items-center gap-1.5">
-                          <div className="w-full bg-primary/20 rounded-md flex items-end" style={{ height: `${val * 2}px` }}>
-                            <div className="w-full bg-primary rounded-md transition-all hover:bg-emerald-500" style={{ height: `${val * 1.5}px` }}></div>
+                          <div
+                            className="w-full bg-primary/20 rounded-md flex items-end"
+                            style={{ height: `${val * 2}px` }}
+                          >
+                            <div
+                              className="w-full bg-primary rounded-md transition-all hover:bg-emerald-500"
+                              style={{ height: `${val * 1.5}px` }}
+                            ></div>
                           </div>
-                          <span className="text-[9px] text-muted-foreground font-mono">{idx + 8} Aug</span>
+                          <span className="text-[9px] text-muted-foreground font-mono">
+                            {idx + 8} Aug
+                          </span>
                         </div>
                       ))}
                     </div>
                     <div className="border-t border-slate-100 pt-3 flex justify-between text-[10px] text-muted-foreground px-2">
-                      <span>Avg Score: <strong>78/100</strong></span>
-                      <span>Target Goal: <strong>85/100</strong></span>
+                      <span>
+                        Avg Score: <strong>78/100</strong>
+                      </span>
+                      <span>
+                        Target Goal: <strong>85/100</strong>
+                      </span>
                     </div>
                   </div>
                 </Card>
@@ -1494,25 +1871,40 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 <Card className="glass-card ice-glow p-6 flex flex-col justify-between h-full">
                   <div>
                     <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-1">
-                      <ShieldAlert className="h-4 w-4 text-red-500 animate-bounce" /> Biomechanical Alerts
+                      <ShieldAlert className="h-4 w-4 text-red-500 animate-bounce" /> Biomechanical
+                      Alerts
                     </h4>
-                    <p className="text-[10px] text-muted-foreground mb-4">Anomalies requiring intervention</p>
-                    
+                    <p className="text-[10px] text-muted-foreground mb-4">
+                      Anomalies requiring intervention
+                    </p>
+
                     <div className="space-y-3">
                       <div className="p-3 bg-red-50 border border-red-200/50 rounded-xl">
-                        <span className="text-[9px] font-bold text-red-600 block">🔴 CRITICAL ALERT</span>
+                        <span className="text-[9px] font-bold text-red-600 block">
+                          🔴 CRITICAL ALERT
+                        </span>
                         <h5 className="font-bold text-slate-800 text-xs mt-0.5">Ishan Bassin</h5>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">Right-side loading asymmetry (72% risk level)</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          Right-side loading asymmetry (72% risk level)
+                        </p>
                       </div>
                       <div className="p-3 bg-amber-50 border border-amber-200/50 rounded-xl">
-                        <span className="text-[9px] font-bold text-amber-600 block">🟡 MODERATE ALERT</span>
+                        <span className="text-[9px] font-bold text-amber-600 block">
+                          🟡 MODERATE ALERT
+                        </span>
                         <h5 className="font-bold text-slate-800 text-xs mt-0.5">Rahul Sharma</h5>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">Landing stability deviation (48% risk level)</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          Landing stability deviation (48% risk level)
+                        </p>
                       </div>
                     </div>
                   </div>
 
-                  <Button onClick={() => setActiveView("alerts")} variant="outline" className="w-full text-xs mt-6 border-primary/20 text-primary">
+                  <Button
+                    onClick={() => setActiveView("alerts")}
+                    variant="outline"
+                    className="w-full text-xs mt-6 border-primary/20 text-primary"
+                  >
                     View All Alerts
                   </Button>
                 </Card>
@@ -1523,7 +1915,9 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
             <Card className="glass-card ice-glow overflow-hidden">
               <div className="p-4 border-b border-slate-100">
                 <h4 className="text-sm font-bold text-slate-800">Athletes Requiring Attention</h4>
-                <p className="text-[10px] text-muted-foreground">Prioritized list based on recent session risk alerts</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Prioritized list based on recent session risk alerts
+                </p>
               </div>
               <div className="overflow-x-auto text-xs">
                 <table className="w-full text-left border-collapse">
@@ -1545,16 +1939,24 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                           </div>
                           <div>
                             <span>{item.name}</span>
-                            <span className="block text-[9px] text-muted-foreground font-normal">{item.sport} · {item.discipline}</span>
+                            <span className="block text-[9px] text-muted-foreground font-normal">
+                              {item.sport} · {item.discipline}
+                            </span>
                           </div>
                         </td>
-                        <td className="py-3 px-4 font-bold text-slate-800">{item.performanceScore}/100</td>
+                        <td className="py-3 px-4 font-bold text-slate-800">
+                          {item.performanceScore}/100
+                        </td>
                         <td className="py-3 px-4">
-                          <Badge className={
-                            item.injuryRisk === "High" ? "bg-red-500/10 text-red-500 border-red-500/20" :
-                            item.injuryRisk === "Medium" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
-                            "bg-green-500/10 text-green-500 border-green-500/20"
-                          }>
+                          <Badge
+                            className={
+                              item.injuryRisk === "High"
+                                ? "bg-red-500/10 text-red-500 border-red-500/20"
+                                : item.injuryRisk === "Medium"
+                                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                  : "bg-green-500/10 text-green-500 border-green-500/20"
+                            }
+                          >
                             {item.injuryRisk} ({item.injuryRiskPercent}%)
                           </Badge>
                         </td>
@@ -1566,7 +1968,11 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                           )}
                         </td>
                         <td className="py-3 px-6 text-right">
-                          <Button onClick={() => triggerInspectAthlete(item)} size="sm" className="bg-primary hover:bg-primary/90 text-white text-xs h-7 px-3">
+                          <Button
+                            onClick={() => triggerInspectAthlete(item)}
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 text-white text-xs h-7 px-3"
+                          >
                             View Profile
                           </Button>
                         </td>
@@ -1581,21 +1987,42 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
             <Card className="glass-card ice-glow">
               <div className="p-4 border-b border-slate-100">
                 <h4 className="text-sm font-bold text-slate-800">Recent Sessions Logs</h4>
-                <p className="text-[10px] text-muted-foreground">Latest diagnostic video footage analysis status</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Latest diagnostic video footage analysis status
+                </p>
               </div>
               <CardContent className="pt-4 space-y-3 text-xs">
                 {MOCK_ATHLETES.map((item) => (
-                  <div key={item.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+                  <div
+                    key={item.id}
+                    className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between"
+                  >
                     <div className="space-y-1">
-                      <span className="text-[10px] text-primary font-bold block uppercase tracking-wider">{item.recentRun.sport}</span>
-                      <h5 className="font-bold text-slate-800 text-xs">{item.name} · {item.recentRun.clipName}</h5>
-                      <span className="text-[10px] text-muted-foreground block">{item.recentRun.timestamp}</span>
+                      <span className="text-[10px] text-primary font-bold block uppercase tracking-wider">
+                        {item.recentRun.sport}
+                      </span>
+                      <h5 className="font-bold text-slate-800 text-xs">
+                        {item.name} · {item.recentRun.clipName}
+                      </h5>
+                      <span className="text-[10px] text-muted-foreground block">
+                        {item.recentRun.timestamp}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge className={item.injuryRisk === "High" ? "bg-red-500/10 text-red-500" : "bg-green-500/10 text-green-600"}>
+                      <Badge
+                        className={
+                          item.injuryRisk === "High"
+                            ? "bg-red-500/10 text-red-500"
+                            : "bg-green-500/10 text-green-600"
+                        }
+                      >
                         {item.injuryRisk} Risk
                       </Badge>
-                      <Button onClick={() => triggerInspectAthlete(item)} variant="outline" className="text-xs h-8 border-slate-200 text-slate-700">
+                      <Button
+                        onClick={() => triggerInspectAthlete(item)}
+                        variant="outline"
+                        className="text-xs h-8 border-slate-200 text-slate-700"
+                      >
                         Review Details
                       </Button>
                     </div>
@@ -1606,21 +2033,30 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
           </div>
         )}
 
-                {/* VIEW: POSE ANALYSIS VIDEO UPLOADER & SETTINGS WORKSPACE */}
+        {/* VIEW: POSE ANALYSIS VIDEO UPLOADER & SETTINGS WORKSPACE */}
         {activeView === ("upload" as any) && !selectedAthlete && (
           <div className="space-y-6 pt-4">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-800">Pose Analysis &amp; Movement Video Uploader</h2>
-              <p className="text-sm text-muted-foreground">Upload performance clips and let KinetIQ's AI extract joint angles, torque loads, and fatigue markers in seconds.</p>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-800">
+                Pose Analysis &amp; Movement Video Uploader
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Upload performance clips and let KinetIQ's AI extract joint angles, torque loads,
+                and fatigue markers in seconds.
+              </p>
             </div>
 
             {/* IF ANALYZING: SHOW LOADING SPINNER CARD */}
             {analyzing && (
               <Card className="glass-card ice-glow p-12 text-center space-y-4 max-w-2xl mx-auto my-8">
                 <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto" />
-                <h3 className="text-lg font-bold text-slate-800">Synthesizing Biomechanical Telemetry...</h3>
+                <h3 className="text-lg font-bold text-slate-800">
+                  Synthesizing Biomechanical Telemetry...
+                </h3>
                 <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-                  Extracting keyframe coordinates using <strong>{selectedModel}</strong>. Calculating joint extension angles, ground impact reaction forces, and posture stability scores...
+                  Extracting keyframe coordinates using <strong>{selectedModel}</strong>.
+                  Calculating joint extension angles, ground impact reaction forces, and posture
+                  stability scores...
                 </p>
               </Card>
             )}
@@ -1636,13 +2072,23 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                         KinetIQ AI Biomechanical Diagnostic Report
                       </span>
                       <Badge className="bg-primary/10 text-primary border border-primary/20">
-                        {analysisReport.assignedTo === "Random / Unassigned" ? "Random / Standalone Analysis" : `Assigned to: ${analysisReport.assignedTo}`}
+                        {analysisReport.assignedTo === "Random / Unassigned"
+                          ? "Random / Standalone Analysis"
+                          : `Assigned to: ${analysisReport.assignedTo}`}
                       </Badge>
-                      <span className="text-[10px] text-muted-foreground font-mono">{analysisReport.timestamp}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {analysisReport.timestamp}
+                      </span>
                     </div>
-                    <h2 className="text-2xl font-extrabold text-slate-800">{analysisReport.sport}</h2>
+                    <h2 className="text-2xl font-extrabold text-slate-800">
+                      {analysisReport.sport}
+                    </h2>
                     <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
-                      Model: <strong className="text-slate-700">{analysisReport.modelUsed}</strong> · Granularity: <strong className="text-slate-700">{analysisReport.granularity} keyframes sampled</strong>
+                      Model: <strong className="text-slate-700">{analysisReport.modelUsed}</strong>{" "}
+                      · Granularity:{" "}
+                      <strong className="text-slate-700">
+                        {analysisReport.granularity} keyframes sampled
+                      </strong>
                     </p>
                   </div>
 
@@ -1694,7 +2140,10 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                     >
                       <Download className="h-4 w-4 mr-1.5" /> Download PDF
                     </Button>
-                    <Button onClick={() => setAnalysisReport(null)} className="bg-primary hover:bg-primary/95 text-white text-xs h-9">
+                    <Button
+                      onClick={() => setAnalysisReport(null)}
+                      className="bg-primary hover:bg-primary/95 text-white text-xs h-9"
+                    >
                       Analyze Another Clip
                     </Button>
                   </div>
@@ -1703,27 +2152,45 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 {/* 2. 5 High-Impact KPI Score Cards */}
                 <div className="grid gap-4 grid-cols-2 lg:grid-cols-5 text-xs">
                   <Card className="p-4 border border-slate-200 bg-white">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Overall Injury Risk</span>
-                    <span className="text-2xl font-extrabold text-red-500 mt-1 block">{analysisReport.injuryRiskPercent}%</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                      Overall Injury Risk
+                    </span>
+                    <span className="text-2xl font-extrabold text-red-500 mt-1 block">
+                      {analysisReport.injuryRiskPercent}%
+                    </span>
                     <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded mt-1 inline-block border border-red-200">
                       {analysisReport.injuryRiskLevel} Risk Spikes
                     </span>
                   </Card>
 
                   <Card className="p-4 border border-slate-200 bg-white">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Posture Alignment</span>
-                    <span className="text-2xl font-extrabold text-primary mt-1 block">{analysisReport.postureScore}</span>
-                    <span className="text-[10px] text-muted-foreground block mt-1">/ 100 Index</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                      Posture Alignment
+                    </span>
+                    <span className="text-2xl font-extrabold text-primary mt-1 block">
+                      {analysisReport.postureScore}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground block mt-1">
+                      / 100 Index
+                    </span>
                   </Card>
 
                   <Card className="p-4 border border-slate-200 bg-white">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Performance Score</span>
-                    <span className="text-2xl font-extrabold text-primary mt-1 block">{analysisReport.performanceScore}</span>
-                    <span className="text-[10px] text-muted-foreground block mt-1">/ 100 Efficiency</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                      Performance Score
+                    </span>
+                    <span className="text-2xl font-extrabold text-primary mt-1 block">
+                      {analysisReport.performanceScore}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground block mt-1">
+                      / 100 Efficiency
+                    </span>
                   </Card>
 
                   <Card className="p-4 border border-slate-200 bg-white">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Bilateral Symmetry</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                      Bilateral Symmetry
+                    </span>
                     <span className="text-2xl font-extrabold text-emerald-600 mt-1 block">92%</span>
                     <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded mt-1 inline-block border border-emerald-200">
                       Balanced Load
@@ -1731,25 +2198,39 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   </Card>
 
                   <Card className="p-4 border border-slate-200 bg-white">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Est. Impact Load</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                      Est. Impact Load
+                    </span>
                     <span className="text-2xl font-extrabold text-amber-600 mt-1 block">2.1G</span>
-                    <span className="text-[10px] text-muted-foreground block mt-1">Peak Ground Reaction</span>
+                    <span className="text-[10px] text-muted-foreground block mt-1">
+                      Peak Ground Reaction
+                    </span>
                   </Card>
                 </div>
 
                 {/* 3. Movement Summary & Clinical Coach Notes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card className="glass-card ice-glow p-6 text-xs space-y-2">
-                    <span className="font-bold text-primary block uppercase tracking-wider text-[10px]">Movement Summary</span>
-                    <h4 className="font-bold text-slate-800 text-sm">Biomechanical Motion Diagnosis</h4>
+                    <span className="font-bold text-primary block uppercase tracking-wider text-[10px]">
+                      Movement Summary
+                    </span>
+                    <h4 className="font-bold text-slate-800 text-sm">
+                      Biomechanical Motion Diagnosis
+                    </h4>
                     <p className="text-slate-700 leading-relaxed">{analysisReport.summary}</p>
                   </Card>
 
                   <Card className="glass-card ice-glow p-6 text-xs space-y-2 bg-primary/5 border border-primary/20">
-                    <span className="font-bold text-primary block uppercase tracking-wider text-[10px]">🤖 Gemini AI Clinical Coach Notes</span>
-                    <h4 className="font-bold text-slate-800 text-sm">Physiotherapist Observations</h4>
+                    <span className="font-bold text-primary block uppercase tracking-wider text-[10px]">
+                      🤖 Gemini AI Clinical Coach Notes
+                    </span>
+                    <h4 className="font-bold text-slate-800 text-sm">
+                      Physiotherapist Observations
+                    </h4>
                     <p className="text-slate-700 leading-relaxed">
-                      Athlete exhibits minor trunk extension angle deviation during plant phase. Monitor ground reaction force during lateral direction changes and prescribe eccentric single-leg glute strengthening.
+                      Athlete exhibits minor trunk extension angle deviation during plant phase.
+                      Monitor ground reaction force during lateral direction changes and prescribe
+                      eccentric single-leg glute strengthening.
                     </p>
                   </Card>
                 </div>
@@ -1762,29 +2243,47 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="p-3 bg-red-50/50 border border-red-200 rounded-xl space-y-1">
                       <div className="flex justify-between items-center">
-                        <span className="font-mono text-red-600 font-bold text-[10px]">0.45s timestamp</span>
-                        <Badge className="bg-red-500 text-white text-[9px] py-0 px-1.5">HIGH SEVERITY</Badge>
+                        <span className="font-mono text-red-600 font-bold text-[10px]">
+                          0.45s timestamp
+                        </span>
+                        <Badge className="bg-red-500 text-white text-[9px] py-0 px-1.5">
+                          HIGH SEVERITY
+                        </Badge>
                       </div>
                       <span className="font-bold text-slate-800 block">Knee Valgus on Landing</span>
-                      <p className="text-muted-foreground text-[11px] leading-relaxed">Inward medial collapse of left knee joint during initial foot contact plant.</p>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Inward medial collapse of left knee joint during initial foot contact plant.
+                      </p>
                     </div>
 
                     <div className="p-3 bg-amber-50/50 border border-amber-200 rounded-xl space-y-1">
                       <div className="flex justify-between items-center">
-                        <span className="font-mono text-amber-600 font-bold text-[10px]">0.90s timestamp</span>
-                        <Badge className="bg-amber-500 text-white text-[9px] py-0 px-1.5">MEDIUM SEVERITY</Badge>
+                        <span className="font-mono text-amber-600 font-bold text-[10px]">
+                          0.90s timestamp
+                        </span>
+                        <Badge className="bg-amber-500 text-white text-[9px] py-0 px-1.5">
+                          MEDIUM SEVERITY
+                        </Badge>
                       </div>
                       <span className="font-bold text-slate-800 block">Trunk Extension Lean</span>
-                      <p className="text-muted-foreground text-[11px] leading-relaxed">Torso angle tilts past 14 degrees relative to pelvic stacking alignment.</p>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Torso angle tilts past 14 degrees relative to pelvic stacking alignment.
+                      </p>
                     </div>
 
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
                       <div className="flex justify-between items-center">
-                        <span className="font-mono text-slate-600 font-bold text-[10px]">1.20s timestamp</span>
-                        <Badge variant="outline" className="text-slate-600 text-[9px] py-0 px-1.5">LOW SEVERITY</Badge>
+                        <span className="font-mono text-slate-600 font-bold text-[10px]">
+                          1.20s timestamp
+                        </span>
+                        <Badge variant="outline" className="text-slate-600 text-[9px] py-0 px-1.5">
+                          LOW SEVERITY
+                        </Badge>
                       </div>
                       <span className="font-bold text-slate-800 block">Deceleration Release</span>
-                      <p className="text-muted-foreground text-[11px] leading-relaxed">Quad-to-hamstring co-contraction stabilizes force absorption.</p>
+                      <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Quad-to-hamstring co-contraction stabilizes force absorption.
+                      </p>
                     </div>
                   </div>
                 </Card>
@@ -1795,33 +2294,43 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <div className="lg:col-span-7 space-y-4">
                     <Card className="glass-card ice-glow p-6 text-xs space-y-4">
                       <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <ShieldAlert className="h-4 w-4 text-red-500" /> Detected Injury Vulnerabilities
+                        <ShieldAlert className="h-4 w-4 text-red-500" /> Detected Injury
+                        Vulnerabilities
                       </h4>
 
                       <div className="space-y-3">
                         <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="font-extrabold text-slate-800 text-sm">Left Knee — ACL Strain &amp; Medial Friction</span>
+                            <span className="font-extrabold text-slate-800 text-sm">
+                              Left Knee — ACL Strain &amp; Medial Friction
+                            </span>
                             <Badge className="bg-red-500 text-white font-bold">Medium · 28%</Badge>
                           </div>
                           <p className="text-slate-600 leading-relaxed">
-                            <strong className="text-slate-800">Why:</strong> Sub-optimal landing flexion combined with 11° knee valgus angle increases shear strain across anterior cruciate ligament.
+                            <strong className="text-slate-800">Why:</strong> Sub-optimal landing
+                            flexion combined with 11° knee valgus angle increases shear strain
+                            across anterior cruciate ligament.
                           </p>
                           <p className="text-primary font-semibold">
-                            <strong>Fix:</strong> Perform soft box landings focusing on knee tracking outward over second toe.
+                            <strong>Fix:</strong> Perform soft box landings focusing on knee
+                            tracking outward over second toe.
                           </p>
                         </div>
 
                         <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="font-extrabold text-slate-800 text-sm">Right Ankle — Inversion Sprain Susceptibility</span>
+                            <span className="font-extrabold text-slate-800 text-sm">
+                              Right Ankle — Inversion Sprain Susceptibility
+                            </span>
                             <Badge className="bg-amber-500 text-white font-bold">Low · 14%</Badge>
                           </div>
                           <p className="text-slate-600 leading-relaxed">
-                            <strong className="text-slate-800">Why:</strong> Lateral weight shift during plant phase places torque stress on talofibular ligament.
+                            <strong className="text-slate-800">Why:</strong> Lateral weight shift
+                            during plant phase places torque stress on talofibular ligament.
                           </p>
                           <p className="text-primary font-semibold">
-                            <strong>Fix:</strong> Integrate single-leg wobble board balance exercises into pre-workout activation.
+                            <strong>Fix:</strong> Integrate single-leg wobble board balance
+                            exercises into pre-workout activation.
                           </p>
                         </div>
                       </div>
@@ -1832,7 +2341,8 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <div className="lg:col-span-5 space-y-4">
                     <Card className="glass-card ice-glow p-6 text-xs space-y-4">
                       <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-primary" /> Biomechanics Sub-Scores Breakdown
+                        <Activity className="h-4 w-4 text-primary" /> Biomechanics Sub-Scores
+                        Breakdown
                       </h4>
 
                       <div className="space-y-3">
@@ -1841,7 +2351,7 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                           { label: "Joint Stacking", score: 78 },
                           { label: "Landing Softness", score: 68 },
                           { label: "Dynamic Balance", score: 82 },
-                          { label: "Fatigue Resistance", score: 88 }
+                          { label: "Fatigue Resistance", score: 88 },
                         ].map((sub, idx) => (
                           <div key={idx} className="space-y-1">
                             <div className="flex justify-between items-center">
@@ -1849,7 +2359,10 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                               <span className="font-bold text-primary">{sub.score} / 100</span>
                             </div>
                             <div className="w-full bg-slate-100 rounded-full h-2">
-                              <div className="bg-primary h-2 rounded-full" style={{ width: `${sub.score}%` }} />
+                              <div
+                                className="bg-primary h-2 rounded-full"
+                                style={{ width: `${sub.score}%` }}
+                              />
                             </div>
                           </div>
                         ))}
@@ -1862,14 +2375,23 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Technique Findings */}
                   <Card className="glass-card ice-glow p-6 text-xs space-y-3">
-                    <h4 className="font-bold text-slate-800 text-sm">Technique Findings &amp; Corrective Cues</h4>
+                    <h4 className="font-bold text-slate-800 text-sm">
+                      Technique Findings &amp; Corrective Cues
+                    </h4>
                     <div className="space-y-3">
                       {analysisReport.findings.map((f: any, idx: number) => (
-                        <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                        <div
+                          key={idx}
+                          className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1"
+                        >
                           <span className="font-bold text-slate-800 block">{f.area}</span>
-                          <p className="text-slate-600 leading-relaxed text-[11px]">{f.observation}</p>
+                          <p className="text-slate-600 leading-relaxed text-[11px]">
+                            {f.observation}
+                          </p>
                           {f.suggestion && (
-                            <p className="text-primary font-semibold text-[11px] mt-1">→ Fix: {f.suggestion}</p>
+                            <p className="text-primary font-semibold text-[11px] mt-1">
+                              → Fix: {f.suggestion}
+                            </p>
                           )}
                         </div>
                       ))}
@@ -1879,23 +2401,42 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   {/* Range of Motion Chart */}
                   <Card className="glass-card ice-glow p-6 text-xs space-y-3">
                     <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                      <Scale className="h-4 w-4 text-primary" /> Range of Motion &amp; Flexion Angles
+                      <Scale className="h-4 w-4 text-primary" /> Range of Motion &amp; Flexion
+                      Angles
                     </h4>
-                    <p className="text-[10px] text-muted-foreground">Knee &amp; Hip joint flexion degrees across keyframes</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Knee &amp; Hip joint flexion degrees across keyframes
+                    </p>
                     <div className="h-56">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={[
-                          { time: "0.00s", knee: 118, hip: 145 },
-                          { time: "0.45s", knee: 165, hip: 158 },
-                          { time: "0.90s", knee: 142, hip: 150 },
-                          { time: "1.20s", knee: 155, hip: 162 }
-                        ]}>
+                        <LineChart
+                          data={[
+                            { time: "0.00s", knee: 118, hip: 145 },
+                            { time: "0.45s", knee: 165, hip: 158 },
+                            { time: "0.90s", knee: 142, hip: 150 },
+                            { time: "1.20s", knee: 155, hip: 162 },
+                          ]}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis dataKey="time" stroke="#64748b" fontSize={10} />
                           <YAxis stroke="#64748b" fontSize={10} domain={[100, 180]} />
                           <RechartsTooltip />
-                          <Line type="monotone" dataKey="knee" name="Left Knee Flexion (°)" stroke="#0d9488" strokeWidth={3} dot={{ r: 4 }} />
-                          <Line type="monotone" dataKey="hip" name="Left Hip Flexion (°)" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+                          <Line
+                            type="monotone"
+                            dataKey="knee"
+                            name="Left Knee Flexion (°)"
+                            stroke="#0d9488"
+                            strokeWidth={3}
+                            dot={{ r: 4 }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="hip"
+                            name="Left Hip Flexion (°)"
+                            stroke="#10b981"
+                            strokeWidth={2}
+                            dot={{ r: 3 }}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -1905,16 +2446,26 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 {/* 7. Prescribed Corrective Exercises & Active Recovery */}
                 <Card className="glass-card ice-glow p-6 text-xs space-y-4">
                   <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Prescribed Corrective Exercises &amp; Recovery Plan
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Prescribed Corrective
+                    Exercises &amp; Recovery Plan
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {analysisReport.exercises.map((ex: any, idx: number) => (
-                      <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-                        <span className="font-bold text-slate-800 block text-xs">{ex.exercise}</span>
+                      <div
+                        key={idx}
+                        className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1"
+                      >
+                        <span className="font-bold text-slate-800 block text-xs">
+                          {ex.exercise}
+                        </span>
                         <div className="flex justify-between items-center pt-1">
-                          <span className="text-[10px] text-muted-foreground">Sets: <strong className="text-primary">{ex.sets}</strong></span>
-                          <Badge className="bg-primary/10 text-primary text-[10px]">{ex.target}</Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            Sets: <strong className="text-primary">{ex.sets}</strong>
+                          </span>
+                          <Badge className="bg-primary/10 text-primary text-[10px]">
+                            {ex.target}
+                          </Badge>
                         </div>
                       </div>
                     ))}
@@ -1922,14 +2473,18 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                   <div className="border-t border-slate-100 pt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-muted-foreground">
                     <div>
-                      <strong className="text-slate-800 block mb-1">Active Recovery Protocol:</strong>
+                      <strong className="text-slate-800 block mb-1">
+                        Active Recovery Protocol:
+                      </strong>
                       <ul className="list-disc pl-4 space-y-0.5">
                         <li>15 minutes post-workout foam rolling on quads and IT bands.</li>
                         <li>Contrast water bath therapy (3 minutes cold / 1 minute warm).</li>
                       </ul>
                     </div>
                     <div>
-                      <strong className="text-slate-800 block mb-1">Nutrition &amp; Hydration Guidance:</strong>
+                      <strong className="text-slate-800 block mb-1">
+                        Nutrition &amp; Hydration Guidance:
+                      </strong>
                       <ul className="list-disc pl-4 space-y-0.5">
                         <li>Consume 30g whey protein within 30 minutes post-training.</li>
                         <li>Maintain 500ml electrolyte fluid intake per hour of activity.</li>
@@ -1938,7 +2493,8 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   </div>
                 </Card>
               </div>
-            )}{/* FORM FORM INPUT (SHOWN WHEN NOT ANALYZING AND NO REPORT GENERATED) */}
+            )}
+            {/* FORM FORM INPUT (SHOWN WHEN NOT ANALYZING AND NO REPORT GENERATED) */}
             {!analysisReport && !analyzing && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Step 1: Upload Clip Card (6 columns) */}
@@ -1946,13 +2502,22 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <Card className="glass-card ice-glow p-6 h-full flex flex-col justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-4">
-                        <span className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">1</span>
-                        <h3 className="font-bold text-slate-800 text-sm">Upload your performance clip</h3>
+                        <span className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                          1
+                        </span>
+                        <h3 className="font-bold text-slate-800 text-sm">
+                          Upload your performance clip
+                        </h3>
                       </div>
-                      <p className="text-xs text-muted-foreground mb-4">MP4, MOV, AVI, or WebM up to 80MB.</p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        MP4, MOV, AVI, or WebM up to 80MB.
+                      </p>
 
                       <div
-                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
                         onDrop={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -1969,10 +2534,14 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                             <FileVideo className="w-7 h-7" />
                           </div>
                           <span className="font-semibold text-slate-800 text-xs">
-                            {coachVideoFile ? coachVideoFile.name : "Drag & drop video file, or browse"}
+                            {coachVideoFile
+                              ? coachVideoFile.name
+                              : "Drag & drop video file, or browse"}
                           </span>
                           <span className="text-[10px] text-muted-foreground mt-1">
-                            {coachVideoFile ? `${(coachVideoFile.size / 1024 / 1024).toFixed(1)} MB loaded` : "MP4, MOV, or AVI clips supported"}
+                            {coachVideoFile
+                              ? `${(coachVideoFile.size / 1024 / 1024).toFixed(1)} MB loaded`
+                              : "MP4, MOV, or AVI clips supported"}
                           </span>
                           <input
                             id="coach-video-input"
@@ -1998,7 +2567,8 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                     </div>
 
                     <div className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-xl text-xs text-primary leading-relaxed">
-                      <strong>💡 AI Tip:</strong> Ensure the athlete's full body is visible in the frame for maximum joint tracking accuracy.
+                      <strong>💡 AI Tip:</strong> Ensure the athlete's full body is visible in the
+                      frame for maximum joint tracking accuracy.
                     </div>
                   </Card>
                 </div>
@@ -2007,56 +2577,88 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 <div className="lg:col-span-6">
                   <Card className="glass-card ice-glow p-6 space-y-4">
                     <div className="flex items-center gap-2 mb-2 border-b border-slate-100 pb-3">
-                      <span className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">2</span>
-                      <h3 className="font-bold text-slate-800 text-sm">Settings &amp; AI Pose Analysis</h3>
+                      <span className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                        2
+                      </span>
+                      <h3 className="font-bold text-slate-800 text-sm">
+                        Settings &amp; AI Pose Analysis
+                      </h3>
                     </div>
 
                     <div className="space-y-3 text-xs">
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700 block">Assign Analysis to Athlete</label>
-                        <select 
+                        <label className="font-semibold text-slate-700 block">
+                          Assign Analysis to Athlete
+                        </label>
+                        <select
                           value={assignedAthleteId}
                           onChange={(e) => setAssignedAthleteId(e.target.value)}
                           className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:border-primary font-semibold"
                         >
-                          <option value="none">Random / Unassigned (General Standalone Analysis)</option>
+                          <option value="none">
+                            Random / Unassigned (General Standalone Analysis)
+                          </option>
                           {MOCK_ATHLETES.map((ath) => (
-                            <option key={ath.id} value={ath.id}>{ath.name} ({ath.sport} · {ath.discipline})</option>
+                            <option key={ath.id} value={ath.id}>
+                              {ath.name} ({ath.sport} · {ath.discipline})
+                            </option>
                           ))}
                         </select>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700 block">Sport / Movement Type</label>
+                        <label className="font-semibold text-slate-700 block">
+                          Sport / Movement Type
+                        </label>
                         <select className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:border-primary">
                           <option value="General">General / Auto-detect</option>
                           <option value="Sprinting">Sprinting (Start &amp; Drive Phase)</option>
                           <option value="Basketball">Basketball (Jump Landing &amp; Cut)</option>
                           <option value="Cricket">Cricket (Fast Bowling Stride)</option>
-                          <option value="Football">Football (Lateral Cut &amp; Deceleration)</option>
+                          <option value="Football">
+                            Football (Lateral Cut &amp; Deceleration)
+                          </option>
                         </select>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700 block">AI Analysis Model / Specialist Agent</label>
-                        <select 
+                        <label className="font-semibold text-slate-700 block">
+                          AI Analysis Model / Specialist Agent
+                        </label>
+                        <select
                           value={selectedModel}
                           onChange={(e) => setSelectedModel(e.target.value)}
                           className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:border-primary"
                         >
-                          <option value="gemini-3.5-flash">Gemini 3.5 Flash (Fastest / Clinical Grade)</option>
-                          <option value="gemini-3.5-pro">Gemini 3.5 Pro (Deep Biomechanical Reasoning)</option>
-                          <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fastest / Advanced)</option>
-                          <option value="gemini-3.6-pro">Gemini 3.6 Pro (Ultra Deep Reasoning)</option>
+                          <option value="gemini-3.5-flash">
+                            Gemini 3.5 Flash (Fastest / Clinical Grade)
+                          </option>
+                          <option value="gemini-3.5-pro">
+                            Gemini 3.5 Pro (Deep Biomechanical Reasoning)
+                          </option>
+                          <option value="gemini-3.6-flash">
+                            Gemini 3.6 Flash (Fastest / Advanced)
+                          </option>
+                          <option value="gemini-3.6-pro">
+                            Gemini 3.6 Pro (Ultra Deep Reasoning)
+                          </option>
                           <option value="llama3.2-vision">Llama 3.2 Vision (Ollama Cloud)</option>
-                          <option value="kinetiq-biomechanics-agent">KinetIQ Biomechanical Specialist Agent</option>
-                          <option value="valgus-prevention-agent">Knee Valgus &amp; ACL Prevention Agent</option>
-                          <option value="kinetic-chain-agent">Kinetic Chain &amp; Ground Impact Agent</option>
+                          <option value="kinetiq-biomechanics-agent">
+                            KinetIQ Biomechanical Specialist Agent
+                          </option>
+                          <option value="valgus-prevention-agent">
+                            Knee Valgus &amp; ACL Prevention Agent
+                          </option>
+                          <option value="kinetic-chain-agent">
+                            Kinetic Chain &amp; Ground Impact Agent
+                          </option>
                         </select>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700 block">Analysis Granularity (Keyframe Extraction)</label>
+                        <label className="font-semibold text-slate-700 block">
+                          Analysis Granularity (Keyframe Extraction)
+                        </label>
                         <div className="grid grid-cols-3 gap-2 text-[10px]">
                           <button
                             type="button"
@@ -2067,7 +2669,10 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                                 : "border-slate-200 bg-white font-semibold text-slate-600 hover:border-primary/50"
                             }`}
                           >
-                            QUICK <span className="block font-normal text-muted-foreground">6 frames</span>
+                            QUICK{" "}
+                            <span className="block font-normal text-muted-foreground">
+                              6 frames
+                            </span>
                           </button>
 
                           <button
@@ -2079,7 +2684,10 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                                 : "border-slate-200 bg-white font-semibold text-slate-600 hover:border-primary/50"
                             }`}
                           >
-                            STANDARD <span className="block font-normal text-muted-foreground">12 frames</span>
+                            STANDARD{" "}
+                            <span className="block font-normal text-muted-foreground">
+                              12 frames
+                            </span>
                           </button>
 
                           <button
@@ -2091,13 +2699,18 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                                 : "border-slate-200 bg-white font-semibold text-slate-600 hover:border-primary/50"
                             }`}
                           >
-                            DEEP <span className="block font-normal text-muted-foreground">16 frames</span>
+                            DEEP{" "}
+                            <span className="block font-normal text-muted-foreground">
+                              16 frames
+                            </span>
                           </button>
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700 block">Coach Notes (optional)</label>
+                        <label className="font-semibold text-slate-700 block">
+                          Coach Notes (optional)
+                        </label>
                         <Textarea
                           rows={2}
                           placeholder="e.g. Focus on knee valgus during landing phase..."
@@ -2110,15 +2723,22 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                           setAnalyzing(true);
                           setAnalysisReport(null);
 
-                          const targetAthlete = MOCK_ATHLETES.find(a => a.id === assignedAthleteId);
-                          const athleteName = targetAthlete ? targetAthlete.name : "Random / Unassigned";
-                          const frameCount = granularity === "quick" ? 6 : granularity === "standard" ? 12 : 16;
+                          const targetAthlete = MOCK_ATHLETES.find(
+                            (a) => a.id === assignedAthleteId,
+                          );
+                          const athleteName = targetAthlete
+                            ? targetAthlete.name
+                            : "Random / Unassigned";
+                          const frameCount =
+                            granularity === "quick" ? 6 : granularity === "standard" ? 12 : 16;
 
-                          toast.info(`Extracting ${frameCount} keyframes from video and initializing Gemini AI model...`);
+                          toast.info(
+                            `Extracting ${frameCount} keyframes from video and initializing Gemini AI model...`,
+                          );
 
                           try {
                             // Extract real canvas frames if a video file is loaded, else generate frame data
-                            let extractedFrames: Array<{ dataUrl: string; timeSec: number }> = [];
+                            const extractedFrames: Array<{ dataUrl: string; timeSec: number }> = [];
 
                             if (coachVideoUrl) {
                               const tempVideo = document.createElement("video");
@@ -2137,23 +2757,27 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                                 const t = ((i + 1) / (frameCount + 1)) * dur;
                                 tempVideo.currentTime = t;
                                 await new Promise<void>((r) => setTimeout(r, 150));
-                                if (ctx) ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+                                if (ctx)
+                                  ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
                                 extractedFrames.push({
                                   dataUrl: canvas.toDataURL("image/jpeg", 0.6),
-                                  timeSec: t
+                                  timeSec: t,
                                 });
                               }
                             } else {
                               // Fallback sample frames
                               for (let i = 0; i < frameCount; i++) {
                                 extractedFrames.push({
-                                  dataUrl: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP...",
-                                  timeSec: i * 0.4
+                                  dataUrl:
+                                    "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP...",
+                                  timeSec: i * 0.4,
                                 });
                               }
                             }
 
-                            toast.info("Transmitting keyframe telemetry to Gemini AI Vision API...");
+                            toast.info(
+                              "Transmitting keyframe telemetry to Gemini AI Vision API...",
+                            );
 
                             // Call the real Gemini server function
                             let realResult: any = null;
@@ -2164,8 +2788,8 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                                   notes: "Coach evaluation for " + athleteName,
                                   durationSec: 5,
                                   frames: extractedFrames,
-                                  model: selectedModel as any
-                                }
+                                  model: selectedModel as any,
+                                },
                               });
                             } catch (apiErr) {
                               console.warn("Gemini API call returned fallback or error:", apiErr);
@@ -2173,41 +2797,98 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                             const finalReport = {
                               id: "rep-" + Math.random().toString(36).substring(2, 9),
-                              timestamp: new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+                              timestamp: new Date().toLocaleDateString(undefined, {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }),
                               assignedTo: athleteName,
                               assignedId: assignedAthleteId,
                               sport: "Sprinting / Athletic Movement",
                               modelUsed: selectedModel,
                               granularity: frameCount,
-                              postureScore: realResult?.postureScore || Math.floor(Math.random() * 15) + 76,
-                              performanceScore: realResult?.performanceScore || Math.floor(Math.random() * 15) + 80,
-                              injuryRiskPercent: realResult?.overallRiskPercent || Math.floor(Math.random() * 25) + 20,
+                              postureScore:
+                                realResult?.postureScore || Math.floor(Math.random() * 15) + 76,
+                              performanceScore:
+                                realResult?.performanceScore || Math.floor(Math.random() * 15) + 80,
+                              injuryRiskPercent:
+                                realResult?.overallRiskPercent ||
+                                Math.floor(Math.random() * 25) + 20,
                               injuryRiskLevel: realResult?.overallRiskLevel || "Medium",
                               stabilityScore: realResult?.subScores?.jointAlignment || 78,
-                              summary: realResult?.movementSummary || `Gemini AI analyzed ${frameCount} keyframe landmark vectors. Detected deceleration impact forces and resolved knee extension angle with joint loading parameters.`,
-                              findings: realResult?.techniqueFindings && realResult.techniqueFindings.length > 0 ? realResult.techniqueFindings : [
-                                { area: "Deceleration Impact", observation: "Ground reaction force load spike detected during initial landing plant phase." },
-                                { area: "Joint Stacking Alignment", observation: "Knee valgus angle resolved to 11° deviation relative to ankle axis." },
-                                { area: "Trunk Extension Control", observation: "Torso extension angle is optimal at 44 degrees during acceleration." }
-                              ],
+                              summary:
+                                realResult?.movementSummary ||
+                                `Gemini AI analyzed ${frameCount} keyframe landmark vectors. Detected deceleration impact forces and resolved knee extension angle with joint loading parameters.`,
+                              findings:
+                                realResult?.techniqueFindings &&
+                                realResult.techniqueFindings.length > 0
+                                  ? realResult.techniqueFindings
+                                  : [
+                                      {
+                                        area: "Deceleration Impact",
+                                        observation:
+                                          "Ground reaction force load spike detected during initial landing plant phase.",
+                                      },
+                                      {
+                                        area: "Joint Stacking Alignment",
+                                        observation:
+                                          "Knee valgus angle resolved to 11° deviation relative to ankle axis.",
+                                      },
+                                      {
+                                        area: "Trunk Extension Control",
+                                        observation:
+                                          "Torso extension angle is optimal at 44 degrees during acceleration.",
+                                      },
+                                    ],
                               keyframes: extractedFrames.slice(0, 3).map((f, idx) => ({
                                 time: f.timeSec.toFixed(2) + "s",
-                                event: idx === 0 ? "Initial Strike" : idx === 1 ? "Mid-Stance Plant" : "Deceleration Cut",
+                                event:
+                                  idx === 0
+                                    ? "Initial Strike"
+                                    : idx === 1
+                                      ? "Mid-Stance Plant"
+                                      : "Deceleration Cut",
                                 angleLabel: "Knee Extension",
-                                angleVal: (115 + idx * 25) + "°",
+                                angleVal: 115 + idx * 25 + "°",
                                 stress: idx === 2 ? "High" : idx === 1 ? "Medium" : "Low",
-                                color: idx === 2 ? "text-red-600 bg-red-500/10 border-red-500/20" : idx === 1 ? "text-amber-600 bg-amber-500/10 border-amber-500/20" : "text-green-600 bg-green-500/10 border-green-500/20"
+                                color:
+                                  idx === 2
+                                    ? "text-red-600 bg-red-500/10 border-red-500/20"
+                                    : idx === 1
+                                      ? "text-amber-600 bg-amber-500/10 border-amber-500/20"
+                                      : "text-green-600 bg-green-500/10 border-green-500/20",
                               })),
-                              exercises: realResult?.preventionExercises && realResult.preventionExercises.length > 0 ? realResult.preventionExercises.map((e: any) => ({
-                                exercise: e.name,
-                                sets: e.sets || "3",
-                                reps: "10-12",
-                                target: e.targets || "Biomechanics"
-                              })) : [
-                                { exercise: "Single-Leg Balance Stance", sets: "3", reps: "30s each leg", target: "Ankle & Knee Alignment" },
-                                { exercise: "Glute Bridges", sets: "3", reps: "12", target: "Hip Stability & Soft Landing" },
-                                { exercise: "Eccentric Calf Raises", sets: "3", reps: "10", target: "Tendinous Shock Absorption" }
-                              ]
+                              exercises:
+                                realResult?.preventionExercises &&
+                                realResult.preventionExercises.length > 0
+                                  ? realResult.preventionExercises.map((e: any) => ({
+                                      exercise: e.name,
+                                      sets: e.sets || "3",
+                                      reps: "10-12",
+                                      target: e.targets || "Biomechanics",
+                                    }))
+                                  : [
+                                      {
+                                        exercise: "Single-Leg Balance Stance",
+                                        sets: "3",
+                                        reps: "30s each leg",
+                                        target: "Ankle & Knee Alignment",
+                                      },
+                                      {
+                                        exercise: "Glute Bridges",
+                                        sets: "3",
+                                        reps: "12",
+                                        target: "Hip Stability & Soft Landing",
+                                      },
+                                      {
+                                        exercise: "Eccentric Calf Raises",
+                                        sets: "3",
+                                        reps: "10",
+                                        target: "Tendinous Shock Absorption",
+                                      },
+                                    ],
                             };
 
                             setAnalysisReport(finalReport);
@@ -2217,25 +2898,39 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                             if (targetAthlete) {
                               const customFeedbackKey = `kinetiq.coach.customfeedback.${targetAthlete.id}`;
                               const existing = localStorage.getItem(customFeedbackKey);
-                              let parsed = existing ? JSON.parse(existing) : [];
+                              const parsed = existing ? JSON.parse(existing) : [];
                               const newReview = {
                                 date: finalReport.timestamp,
                                 coachName: `Coach Marcus (${selectedModel})`,
-                                feedback: finalReport.summary + "\n\nPrescribed Drills:\n- " + finalReport.exercises.map((e: any) => `${e.exercise} (${e.sets}x${e.reps})`).join("\n- "),
-                                tag: "Gemini AI Review"
+                                feedback:
+                                  finalReport.summary +
+                                  "\n\nPrescribed Drills:\n- " +
+                                  finalReport.exercises
+                                    .map((e: any) => `${e.exercise} (${e.sets}x${e.reps})`)
+                                    .join("\n- "),
+                                tag: "Gemini AI Review",
                               };
-                              localStorage.setItem(customFeedbackKey, JSON.stringify([newReview, ...parsed]));
-                              localStorage.setItem(`kinetiq.tasks.${targetAthlete.id}`, JSON.stringify(finalReport.exercises));
+                              localStorage.setItem(
+                                customFeedbackKey,
+                                JSON.stringify([newReview, ...parsed]),
+                              );
+                              localStorage.setItem(
+                                `kinetiq.tasks.${targetAthlete.id}`,
+                                JSON.stringify(finalReport.exercises),
+                              );
                             }
                           } catch (err) {
                             console.error("Analysis pipeline error:", err);
-                            toast.error("Analysis pipeline failed. Please check keyframe extraction.");
+                            toast.error(
+                              "Analysis pipeline failed. Please check keyframe extraction.",
+                            );
                             setAnalyzing(false);
                           }
                         }}
                         className="bg-primary hover:bg-primary/95 text-white font-bold text-xs h-10 w-full mt-2 shadow-md flex items-center justify-center gap-2"
                       >
-                        <Sparkles className="h-4 w-4" /> Run Movement Analysis &amp; Generate Telemetry
+                        <Sparkles className="h-4 w-4" /> Run Movement Analysis &amp; Generate
+                        Telemetry
                       </Button>
                     </div>
                   </Card>
@@ -2245,20 +2940,21 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
           </div>
         )}
 
-        
         {activeView === "athletes" && !selectedAthlete && (
           <div className="space-y-6 pt-4">
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-slate-800">Athletes Roster</h2>
-              <p className="text-sm text-muted-foreground">Search and manage KinetIQ dynamic biomechanics profiles</p>
+              <p className="text-sm text-muted-foreground">
+                Search and manage KinetIQ dynamic biomechanics profiles
+              </p>
             </div>
 
             {/* Filters panel */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-4 border border-slate-200 rounded-xl text-xs">
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Search name or sport</label>
-                <Input 
-                  placeholder="Search athletes..." 
+                <Input
+                  placeholder="Search athletes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-white border-slate-200 text-xs h-8"
@@ -2266,7 +2962,7 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
               </div>
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Filter by Risk</label>
-                <select 
+                <select
                   value={riskFilter}
                   onChange={(e) => setRiskFilter(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-xs h-8 text-slate-800 focus:outline-none"
@@ -2279,7 +2975,7 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
               </div>
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Filter by Sport</label>
-                <select 
+                <select
                   value={sportFilter}
                   onChange={(e) => setSportFilter(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-xs h-8 text-slate-800 focus:outline-none"
@@ -2291,7 +2987,10 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 </select>
               </div>
               <div className="flex items-end justify-end">
-                <Button onClick={handleCopyInviteLink} className="bg-primary hover:bg-primary/95 text-white text-xs h-8 w-full">
+                <Button
+                  onClick={handleCopyInviteLink}
+                  className="bg-primary hover:bg-primary/95 text-white text-xs h-8 w-full"
+                >
                   Create Athlete Invite Link
                 </Button>
               </div>
@@ -2315,7 +3014,9 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <tbody className="divide-y divide-slate-100">
                     {filteredAthletes.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-muted-foreground italic">No matching athletes found.</td>
+                        <td colSpan={7} className="py-8 text-center text-muted-foreground italic">
+                          No matching athletes found.
+                        </td>
                       </tr>
                     ) : (
                       filteredAthletes.map((item) => (
@@ -2326,27 +3027,43 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                             </div>
                             <div>
                               <span>{item.name}</span>
-                              <span className="block text-[9px] text-muted-foreground font-normal">{item.email}</span>
+                              <span className="block text-[9px] text-muted-foreground font-normal">
+                                {item.email}
+                              </span>
                             </div>
                           </td>
                           <td className="py-3 px-4">
                             <span className="block font-medium text-slate-800">{item.sport}</span>
-                            <span className="text-[10px] text-muted-foreground block">{item.discipline}</span>
+                            <span className="text-[10px] text-muted-foreground block">
+                              {item.discipline}
+                            </span>
                           </td>
-                          <td className="py-3 px-4 text-center font-bold text-slate-800">{item.postureScore}/100</td>
-                          <td className="py-3 px-4 text-center font-bold text-slate-800">{item.performanceScore}/100</td>
+                          <td className="py-3 px-4 text-center font-bold text-slate-800">
+                            {item.postureScore}/100
+                          </td>
+                          <td className="py-3 px-4 text-center font-bold text-slate-800">
+                            {item.performanceScore}/100
+                          </td>
                           <td className="py-3 px-4">
-                            <Badge className={
-                              item.injuryRisk === "High" ? "bg-red-500/10 text-red-500" :
-                              item.injuryRisk === "Medium" ? "bg-amber-500/10 text-amber-500" :
-                              "bg-green-500/10 text-green-600"
-                            }>
+                            <Badge
+                              className={
+                                item.injuryRisk === "High"
+                                  ? "bg-red-500/10 text-red-500"
+                                  : item.injuryRisk === "Medium"
+                                    ? "bg-amber-500/10 text-amber-500"
+                                    : "bg-green-500/10 text-green-600"
+                              }
+                            >
                               {item.injuryRisk} ({item.injuryRiskPercent}%)
                             </Badge>
                           </td>
                           <td className="py-3 px-4 text-muted-foreground">{item.lastActive}</td>
                           <td className="py-3 px-6 text-right">
-                            <Button onClick={() => triggerInspectAthlete(item)} size="sm" className="bg-primary hover:bg-primary/95 text-white text-xs h-7 px-3">
+                            <Button
+                              onClick={() => triggerInspectAthlete(item)}
+                              size="sm"
+                              className="bg-primary hover:bg-primary/95 text-white text-xs h-7 px-3"
+                            >
                               Inspect Profile
                             </Button>
                           </td>
@@ -2365,7 +3082,9 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
           <div className="space-y-6 pt-4">
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-slate-800">Sessions Logs</h2>
-              <p className="text-sm text-muted-foreground">Review, search, and audit all uploaded diagnostic biomechanics video files</p>
+              <p className="text-sm text-muted-foreground">
+                Review, search, and audit all uploaded diagnostic biomechanics video files
+              </p>
             </div>
 
             <Card className="glass-card ice-glow overflow-hidden">
@@ -2374,10 +3093,17 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
               </div>
               <CardContent className="pt-4 space-y-3 text-xs">
                 {MOCK_ATHLETES.map((item) => (
-                  <div key={item.id} className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div
+                    key={item.id}
+                    className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                  >
                     <div className="space-y-1">
-                      <span className="text-[10px] text-primary font-bold uppercase tracking-wider block">{item.recentRun.sport}</span>
-                      <h4 className="font-extrabold text-slate-800 text-sm">{item.name} · {item.recentRun.clipName}</h4>
+                      <span className="text-[10px] text-primary font-bold uppercase tracking-wider block">
+                        {item.recentRun.sport}
+                      </span>
+                      <h4 className="font-extrabold text-slate-800 text-sm">
+                        {item.name} · {item.recentRun.clipName}
+                      </h4>
                       <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                         <span>Timestamp: {item.recentRun.timestamp}</span>
                         <span>·</span>
@@ -2387,12 +3113,23 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                     <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0">
                       <div className="flex gap-2">
-                        <Badge className="bg-primary/10 text-primary">Score: {item.performanceScore}/100</Badge>
-                        <Badge className={item.injuryRisk === "High" ? "bg-red-500/10 text-red-500" : "bg-green-500/10 text-green-600"}>
+                        <Badge className="bg-primary/10 text-primary">
+                          Score: {item.performanceScore}/100
+                        </Badge>
+                        <Badge
+                          className={
+                            item.injuryRisk === "High"
+                              ? "bg-red-500/10 text-red-500"
+                              : "bg-green-500/10 text-green-600"
+                          }
+                        >
                           {item.injuryRisk} Risk
                         </Badge>
                       </div>
-                      <Button onClick={() => triggerInspectAthlete(item)} className="bg-primary hover:bg-primary/95 text-white text-xs h-8">
+                      <Button
+                        onClick={() => triggerInspectAthlete(item)}
+                        className="bg-primary hover:bg-primary/95 text-white text-xs h-8"
+                      >
                         Review Video &amp; Timelines
                       </Button>
                     </div>
@@ -2407,31 +3144,50 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
         {activeView === "alerts" && !selectedAthlete && (
           <div className="space-y-6 pt-4">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-800">Risk Alerts Center</h2>
-              <p className="text-sm text-muted-foreground">Active risk level prioritization across your monitored roster</p>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-800">
+                Risk Alerts Center
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Active risk level prioritization across your monitored roster
+              </p>
             </div>
 
             <Card className="glass-card ice-glow p-4 bg-primary/5 border border-primary/20 text-xs leading-relaxed text-primary">
-              <span className="font-bold block uppercase tracking-wider mb-1">💡 AI priority insight</span>
-              <strong>3 athletes require attention today.</strong> Ishan Bassin has the highest priority because his right-side loading asymmetry indicates joint friction during block drive. Alex Rivera's fast bowling delivery stride continues to trigger load spikes.
+              <span className="font-bold block uppercase tracking-wider mb-1">
+                💡 AI priority insight
+              </span>
+              <strong>3 athletes require attention today.</strong> Ishan Bassin has the highest
+              priority because his right-side loading asymmetry indicates joint friction during
+              block drive. Alex Rivera's fast bowling delivery stride continues to trigger load
+              spikes.
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* High Risk column */}
               <div className="space-y-4">
                 <div className="p-3 bg-red-100 border border-red-200 rounded-xl flex items-center justify-between">
-                  <span className="font-extrabold text-red-700 text-xs uppercase">🔴 High Risk — 1</span>
+                  <span className="font-extrabold text-red-700 text-xs uppercase">
+                    🔴 High Risk — 1
+                  </span>
                 </div>
-                {MOCK_ATHLETES.filter(a => a.injuryRisk === "High").map(a => (
-                  <Card key={a.id} className="p-4 bg-white border border-slate-200 space-y-3 rounded-xl shadow-sm text-xs">
+                {MOCK_ATHLETES.filter((a) => a.injuryRisk === "High").map((a) => (
+                  <Card
+                    key={a.id}
+                    className="p-4 bg-white border border-slate-200 space-y-3 rounded-xl shadow-sm text-xs"
+                  >
                     <div>
                       <h4 className="font-bold text-slate-800 text-sm">{a.name}</h4>
-                      <span className="text-[10px] text-muted-foreground block">{a.sport} · {a.discipline}</span>
+                      <span className="text-[10px] text-muted-foreground block">
+                        {a.sport} · {a.discipline}
+                      </span>
                     </div>
                     <div className="p-2.5 bg-red-50 border border-red-100 rounded-lg text-red-600 leading-relaxed text-[11px]">
                       <strong>Anomalies:</strong> {a.recentRun.findings[0]?.observation}
                     </div>
-                    <Button onClick={() => triggerInspectAthlete(a)} className="bg-primary hover:bg-primary/95 text-white w-full text-xs h-8">
+                    <Button
+                      onClick={() => triggerInspectAthlete(a)}
+                      className="bg-primary hover:bg-primary/95 text-white w-full text-xs h-8"
+                    >
                       Review Athlete
                     </Button>
                   </Card>
@@ -2441,18 +3197,28 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
               {/* Medium Risk column */}
               <div className="space-y-4">
                 <div className="p-3 bg-amber-100 border border-amber-200 rounded-xl flex items-center justify-between">
-                  <span className="font-extrabold text-amber-700 text-xs uppercase">🟡 Moderate Risk — 1</span>
+                  <span className="font-extrabold text-amber-700 text-xs uppercase">
+                    🟡 Moderate Risk — 1
+                  </span>
                 </div>
-                {MOCK_ATHLETES.filter(a => a.injuryRisk === "Medium").map(a => (
-                  <Card key={a.id} className="p-4 bg-white border border-slate-200 space-y-3 rounded-xl shadow-sm text-xs">
+                {MOCK_ATHLETES.filter((a) => a.injuryRisk === "Medium").map((a) => (
+                  <Card
+                    key={a.id}
+                    className="p-4 bg-white border border-slate-200 space-y-3 rounded-xl shadow-sm text-xs"
+                  >
                     <div>
                       <h4 className="font-bold text-slate-800 text-sm">{a.name}</h4>
-                      <span className="text-[10px] text-muted-foreground block">{a.sport} · {a.discipline}</span>
+                      <span className="text-[10px] text-muted-foreground block">
+                        {a.sport} · {a.discipline}
+                      </span>
                     </div>
                     <div className="p-2.5 bg-amber-50 border border-amber-100 rounded-lg text-amber-600 leading-relaxed text-[11px]">
                       <strong>Anomalies:</strong> {a.recentRun.findings[0]?.observation}
                     </div>
-                    <Button onClick={() => triggerInspectAthlete(a)} className="bg-primary hover:bg-primary/95 text-white w-full text-xs h-8">
+                    <Button
+                      onClick={() => triggerInspectAthlete(a)}
+                      className="bg-primary hover:bg-primary/95 text-white w-full text-xs h-8"
+                    >
                       Review Athlete
                     </Button>
                   </Card>
@@ -2462,18 +3228,28 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
               {/* Low Risk column */}
               <div className="space-y-4">
                 <div className="p-3 bg-green-100 border border-green-200 rounded-xl flex items-center justify-between">
-                  <span className="font-extrabold text-green-700 text-xs uppercase">🟢 Low Risk — 1</span>
+                  <span className="font-extrabold text-green-700 text-xs uppercase">
+                    🟢 Low Risk — 1
+                  </span>
                 </div>
-                {MOCK_ATHLETES.filter(a => a.injuryRisk === "Low").map(a => (
-                  <Card key={a.id} className="p-4 bg-white border border-slate-200 space-y-3 rounded-xl shadow-sm text-xs">
+                {MOCK_ATHLETES.filter((a) => a.injuryRisk === "Low").map((a) => (
+                  <Card
+                    key={a.id}
+                    className="p-4 bg-white border border-slate-200 space-y-3 rounded-xl shadow-sm text-xs"
+                  >
                     <div>
                       <h4 className="font-bold text-slate-800 text-sm">{a.name}</h4>
-                      <span className="text-[10px] text-muted-foreground block">{a.sport} · {a.discipline}</span>
+                      <span className="text-[10px] text-muted-foreground block">
+                        {a.sport} · {a.discipline}
+                      </span>
                     </div>
                     <div className="p-2.5 bg-green-50 border border-green-100 rounded-lg text-green-700 leading-relaxed text-[11px]">
                       <strong>Status:</strong> Optimal biomechanics aligned.
                     </div>
-                    <Button onClick={() => triggerInspectAthlete(a)} className="bg-primary hover:bg-primary/95 text-white w-full text-xs h-8">
+                    <Button
+                      onClick={() => triggerInspectAthlete(a)}
+                      className="bg-primary hover:bg-primary/95 text-white w-full text-xs h-8"
+                    >
                       Review Athlete
                     </Button>
                   </Card>
@@ -2488,7 +3264,9 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
           <div className="space-y-6 pt-4">
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-slate-800">Reports Center</h2>
-              <p className="text-sm text-muted-foreground">Export individual metrics summaries or aggregate team diagnostics audits</p>
+              <p className="text-sm text-muted-foreground">
+                Export individual metrics summaries or aggregate team diagnostics audits
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2498,24 +3276,39 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
                     <User className="h-5 w-5 text-primary" /> Individual Performance Report
                   </h4>
-                  <p className="text-xs text-muted-foreground mb-4">Export diagnostic logs, kinematic timeline highlights, and rehab compliance for a specific athlete.</p>
-                  
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Export diagnostic logs, kinematic timeline highlights, and rehab compliance for
+                    a specific athlete.
+                  </p>
+
                   <div className="space-y-3 text-xs">
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
                       <div>
                         <span className="font-bold text-slate-800 block">Ishan Bassin</span>
-                        <span className="text-[10px] text-muted-foreground block">Performance: 83 · Risk: 72% (High)</span>
+                        <span className="text-[10px] text-muted-foreground block">
+                          Performance: 83 · Risk: 72% (High)
+                        </span>
                       </div>
-                      <Button onClick={() => toast.success("Exporting Ishan Bassin's report as PDF...")} variant="outline" className="text-xs h-8 border-slate-200 text-slate-700">
+                      <Button
+                        onClick={() => toast.success("Exporting Ishan Bassin's report as PDF...")}
+                        variant="outline"
+                        className="text-xs h-8 border-slate-200 text-slate-700"
+                      >
                         Export PDF
                       </Button>
                     </div>
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
                       <div>
                         <span className="font-bold text-slate-800 block">Rahul Sharma</span>
-                        <span className="text-[10px] text-muted-foreground block">Performance: 79 · Risk: 48% (Medium)</span>
+                        <span className="text-[10px] text-muted-foreground block">
+                          Performance: 79 · Risk: 48% (Medium)
+                        </span>
                       </div>
-                      <Button onClick={() => toast.success("Exporting Rahul Sharma's report as PDF...")} variant="outline" className="text-xs h-8 border-slate-200 text-slate-700">
+                      <Button
+                        onClick={() => toast.success("Exporting Rahul Sharma's report as PDF...")}
+                        variant="outline"
+                        className="text-xs h-8 border-slate-200 text-slate-700"
+                      >
                         Export PDF
                       </Button>
                     </div>
@@ -2529,23 +3322,40 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
                     <Activity className="h-5 w-5 text-primary" /> Team Diagnostics Report
                   </h4>
-                  <p className="text-xs text-muted-foreground mb-4">Export aggregate analytics metrics including average performance scores, risk parameters distribution, and common posture anomalies.</p>
-                  
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Export aggregate analytics metrics including average performance scores, risk
+                    parameters distribution, and common posture anomalies.
+                  </p>
+
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2 mb-6">
-                    <span className="font-bold text-slate-800 block uppercase tracking-wider text-[10px]">Team Aggregate Summary</span>
+                    <span className="font-bold text-slate-800 block uppercase tracking-wider text-[10px]">
+                      Team Aggregate Summary
+                    </span>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>Average Performance: <strong className="text-primary">81/100</strong></div>
-                      <div>High Risk Athletes: <strong className="text-red-500">3</strong></div>
-                      <div>Average Risk Score: <strong className="text-primary">44%</strong></div>
-                      <div>Improving Members: <strong className="text-emerald-600">17</strong></div>
+                      <div>
+                        Average Performance: <strong className="text-primary">81/100</strong>
+                      </div>
+                      <div>
+                        High Risk Athletes: <strong className="text-red-500">3</strong>
+                      </div>
+                      <div>
+                        Average Risk Score: <strong className="text-primary">44%</strong>
+                      </div>
+                      <div>
+                        Improving Members: <strong className="text-emerald-600">17</strong>
+                      </div>
                     </div>
                     <div className="text-[11px] text-muted-foreground pt-2 border-t border-slate-200">
-                      <strong>Most Common Technique Issue:</strong> Landing mechanics / Knee valgus on initial blocks acceleration.
+                      <strong>Most Common Technique Issue:</strong> Landing mechanics / Knee valgus
+                      on initial blocks acceleration.
                     </div>
                   </div>
                 </div>
 
-                <Button onClick={() => toast.success("Downloading Team Diagnostic Report PDF...")} className="bg-primary hover:bg-primary/95 text-white w-full text-xs h-9">
+                <Button
+                  onClick={() => toast.success("Downloading Team Diagnostic Report PDF...")}
+                  className="bg-primary hover:bg-primary/95 text-white w-full text-xs h-9"
+                >
                   Export Team Report PDF
                 </Button>
               </Card>
@@ -2569,10 +3379,17 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 </button>
                 <h2 className="text-2xl font-bold tracking-tight text-slate-800">{ath.name}</h2>
                 <p className="text-xs text-muted-foreground">
-                  {ath.sport} · {ath.discipline} · role: <span className="text-primary font-semibold">Athlete</span>
+                  {ath.sport} · {ath.discipline} · role:{" "}
+                  <span className="text-primary font-semibold">Athlete</span>
                 </p>
               </div>
-              <Badge className={ath.injuryRisk === "High" ? "bg-red-500/10 text-red-500" : "bg-green-500/10 text-green-600"}>
+              <Badge
+                className={
+                  ath.injuryRisk === "High"
+                    ? "bg-red-500/10 text-red-500"
+                    : "bg-green-500/10 text-green-600"
+                }
+              >
                 Risk Level: {ath.injuryRisk} ({ath.injuryRiskPercent}%)
               </Badge>
             </div>
@@ -2623,7 +3440,10 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-slate-800">{ath.name}</h3>
-                        <p className="text-xs text-muted-foreground">{ath.sport} · {ath.discipline} · Dominant: <strong className="text-slate-700">Right Leg</strong></p>
+                        <p className="text-xs text-muted-foreground">
+                          {ath.sport} · {ath.discipline} · Dominant:{" "}
+                          <strong className="text-slate-700">Right Leg</strong>
+                        </p>
                       </div>
                     </div>
 
@@ -2633,7 +3453,7 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                           <Activity className="h-4 w-4 mr-1.5" /> Upload Video &amp; Run Analysis
                         </Button>
                       </Link>
-                      <Button 
+                      <Button
                         onClick={() => {
                           const win = window.open("", "_blank");
                           if (win) {
@@ -2682,7 +3502,7 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                             win.document.close();
                           }
                         }}
-                        variant="outline" 
+                        variant="outline"
                         className="text-xs h-9 border-slate-200 text-slate-700"
                       >
                         <FileText className="h-4 w-4 mr-1.5" /> Export PDF Report
@@ -2693,20 +3513,36 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   {/* Profile Biometrics Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Height / Weight</span>
-                      <span className="text-sm font-bold text-slate-800 mt-0.5 block">182 cm / 76 kg</span>
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                        Height / Weight
+                      </span>
+                      <span className="text-sm font-bold text-slate-800 mt-0.5 block">
+                        182 cm / 76 kg
+                      </span>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Injury History</span>
-                      <span className="text-sm font-bold text-amber-600 mt-0.5 block">Right Ankle Sprain</span>
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                        Injury History
+                      </span>
+                      <span className="text-sm font-bold text-amber-600 mt-0.5 block">
+                        Right Ankle Sprain
+                      </span>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Primary Modality</span>
-                      <span className="text-sm font-bold text-slate-800 mt-0.5 block">{ath.sport}</span>
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                        Primary Modality
+                      </span>
+                      <span className="text-sm font-bold text-slate-800 mt-0.5 block">
+                        {ath.sport}
+                      </span>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Active Status</span>
-                      <span className="text-sm font-bold text-emerald-600 mt-0.5 block">{ath.status}</span>
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
+                        Active Status
+                      </span>
+                      <span className="text-sm font-bold text-emerald-600 mt-0.5 block">
+                        {ath.status}
+                      </span>
                     </div>
                   </div>
                 </Card>
@@ -2722,23 +3558,40 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                       <div className="grid grid-cols-3 gap-4 text-center border-y border-slate-100 py-3">
                         <div>
-                          <span className="text-[10px] text-muted-foreground block font-semibold uppercase">Performance Score</span>
-                          <span className="text-2xl font-extrabold text-primary mt-1 block">{ath.performanceScore}/100</span>
+                          <span className="text-[10px] text-muted-foreground block font-semibold uppercase">
+                            Performance Score
+                          </span>
+                          <span className="text-2xl font-extrabold text-primary mt-1 block">
+                            {ath.performanceScore}/100
+                          </span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-muted-foreground block font-semibold uppercase">Posture Index</span>
-                          <span className="text-2xl font-extrabold text-primary mt-1 block">{ath.postureScore}/100</span>
+                          <span className="text-[10px] text-muted-foreground block font-semibold uppercase">
+                            Posture Index
+                          </span>
+                          <span className="text-2xl font-extrabold text-primary mt-1 block">
+                            {ath.postureScore}/100
+                          </span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-muted-foreground block font-semibold uppercase">Injury Risk Probability</span>
-                          <span className="text-2xl font-extrabold text-red-500 mt-1 block">{ath.injuryRiskPercent}%</span>
+                          <span className="text-[10px] text-muted-foreground block font-semibold uppercase">
+                            Injury Risk Probability
+                          </span>
+                          <span className="text-2xl font-extrabold text-red-500 mt-1 block">
+                            {ath.injuryRiskPercent}%
+                          </span>
                         </div>
                       </div>
 
                       <div className="space-y-3">
-                        <h5 className="font-bold text-slate-700 text-xs">Computer Vision Findings:</h5>
+                        <h5 className="font-bold text-slate-700 text-xs">
+                          Computer Vision Findings:
+                        </h5>
                         {ath.recentRun.findings.map((f: any, idx: number) => (
-                          <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed text-muted-foreground flex items-start gap-2.5">
+                          <div
+                            key={idx}
+                            className="p-3 bg-slate-50 border border-slate-200 rounded-xl leading-relaxed text-muted-foreground flex items-start gap-2.5"
+                          >
                             <span className="text-primary font-bold">●</span>
                             <div>
                               <strong className="text-slate-800 block">{f.area}</strong>
@@ -2751,10 +3604,16 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                     {/* AI Actionable Guidance */}
                     <Card className="glass-card ice-glow p-6 bg-primary/5 border border-primary/20 text-xs space-y-2">
-                      <span className="font-bold text-primary block uppercase tracking-wider text-[10px]">🤖 AI Action Recommendation</span>
-                      <h4 className="font-bold text-slate-800 text-sm">What this means &amp; Today's Focus</h4>
+                      <span className="font-bold text-primary block uppercase tracking-wider text-[10px]">
+                        🤖 AI Action Recommendation
+                      </span>
+                      <h4 className="font-bold text-slate-800 text-sm">
+                        What this means &amp; Today's Focus
+                      </h4>
                       <p className="text-muted-foreground leading-relaxed">
-                        {ath.name}'s right leg is experiencing 14% higher deceleration impact forces during ground contact. Prioritize soft single-leg box drop landings and gluteus medius activation drills before high-intensity sprints today.
+                        {ath.name}'s right leg is experiencing 14% higher deceleration impact forces
+                        during ground contact. Prioritize soft single-leg box drop landings and
+                        gluteus medius activation drills before high-intensity sprints today.
                       </p>
                     </Card>
                   </div>
@@ -2773,7 +3632,11 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                         </div>
                         <div className="flex justify-between items-center bg-slate-50 p-2.5 border border-slate-100 rounded-xl">
                           <span className="text-muted-foreground">Muscle Soreness</span>
-                          <span className={`font-bold ${ath.recovery.soreness.includes("High") ? "text-red-500" : "text-primary"}`}>{ath.recovery.soreness}</span>
+                          <span
+                            className={`font-bold ${ath.recovery.soreness.includes("High") ? "text-red-500" : "text-primary"}`}
+                          >
+                            {ath.recovery.soreness}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center bg-slate-50 p-2.5 border border-slate-100 rounded-xl">
                           <span className="text-muted-foreground">Sleep Quality</span>
@@ -2790,7 +3653,6 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
               </div>
             )}
 
-            
             {detailTab === "analysis" && (
               <div className="space-y-6">
                 {/* 1. Timeline & Keyframes */}
@@ -2799,11 +3661,17 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                     <div className="flex justify-between items-center">
                       <div>
                         <CardTitle className="text-base font-bold text-primary flex items-center gap-2">
-                          <TrendingUp className="h-5 w-5 text-primary" /> Kinematic Keyframe Timeline &amp; Landmark Angle Analysis
+                          <TrendingUp className="h-5 w-5 text-primary" /> Kinematic Keyframe
+                          Timeline &amp; Landmark Angle Analysis
                         </CardTitle>
-                        <CardDescription className="text-xs text-muted-foreground">Modality inspection for {ath.name} · {ath.recentRun.sport}</CardDescription>
+                        <CardDescription className="text-xs text-muted-foreground">
+                          Modality inspection for {ath.name} · {ath.recentRun.sport}
+                        </CardDescription>
                       </div>
-                      <Badge variant="outline" className="border-slate-200 bg-slate-100 text-slate-700">
+                      <Badge
+                        variant="outline"
+                        className="border-slate-200 bg-slate-100 text-slate-700"
+                      >
                         {ath.recentRun.clipName}
                       </Badge>
                     </div>
@@ -2821,9 +3689,15 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                               : "bg-white border-slate-200 text-muted-foreground hover:border-slate-300"
                           }`}
                         >
-                          <span className="text-[10px] font-mono text-primary block">{kf.time}</span>
-                          <span className="text-xs font-semibold block text-foreground mt-1">{kf.event}</span>
-                          <span className="text-[10px] text-muted-foreground block mt-0.5">{kf.angleLabel}: {kf.angleVal}</span>
+                          <span className="text-[10px] font-mono text-primary block">
+                            {kf.time}
+                          </span>
+                          <span className="text-xs font-semibold block text-foreground mt-1">
+                            {kf.event}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground block mt-0.5">
+                            {kf.angleLabel}: {kf.angleVal}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -2840,19 +3714,34 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                               {selectedKeyframe.stress} Load Stress
                             </Badge>
                           </div>
-                          <h4 className="text-sm font-bold text-foreground">{selectedKeyframe.event}</h4>
+                          <h4 className="text-sm font-bold text-foreground">
+                            {selectedKeyframe.event}
+                          </h4>
                           <p className="text-xs text-muted-foreground leading-relaxed">
-                            Computer vision pipeline resolved {selectedKeyframe.angleLabel} to be <strong className="text-primary font-mono">{selectedKeyframe.angleVal}</strong>.
-                            {selectedKeyframe.stress === "High" && " Joint load flags biomechanical friction. Knee valgus mitigation recommended."}
-                            {selectedKeyframe.stress === "Medium" && " Torque loading parameters are near standard thresholds. Monitor over consecutive runs."}
-                            {selectedKeyframe.stress === "Low" && " Stacking lines are optimal. Muscle alignment is well co-contracted."}
+                            Computer vision pipeline resolved {selectedKeyframe.angleLabel} to be{" "}
+                            <strong className="text-primary font-mono">
+                              {selectedKeyframe.angleVal}
+                            </strong>
+                            .
+                            {selectedKeyframe.stress === "High" &&
+                              " Joint load flags biomechanical friction. Knee valgus mitigation recommended."}
+                            {selectedKeyframe.stress === "Medium" &&
+                              " Torque loading parameters are near standard thresholds. Monitor over consecutive runs."}
+                            {selectedKeyframe.stress === "Low" &&
+                              " Stacking lines are optimal. Muscle alignment is well co-contracted."}
                           </p>
                         </div>
 
                         <div className="border border-slate-200 rounded-xl bg-white p-4 text-center shrink-0 w-full md:w-44 shadow-sm">
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block font-semibold">Resolved Angle</span>
-                          <span className="text-3xl font-bold text-primary block my-1 font-mono">{selectedKeyframe.angleVal.split(" ")[0]}</span>
-                          <span className="text-[10px] text-muted-foreground block font-medium">{selectedKeyframe.angleLabel}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block font-semibold">
+                            Resolved Angle
+                          </span>
+                          <span className="text-3xl font-bold text-primary block my-1 font-mono">
+                            {selectedKeyframe.angleVal.split(" ")[0]}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground block font-medium">
+                            {selectedKeyframe.angleLabel}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -2863,24 +3752,44 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Joint Angle Curve */}
                   <Card className="glass-card ice-glow p-6 text-xs">
-                    <h4 className="font-bold text-slate-800 text-sm mb-1">Joint Angle Extension Curve (Degrees)</h4>
-                    <p className="text-[10px] text-muted-foreground mb-4">Angle progression across keyframe timestamps</p>
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">
+                      Joint Angle Extension Curve (Degrees)
+                    </h4>
+                    <p className="text-[10px] text-muted-foreground mb-4">
+                      Angle progression across keyframe timestamps
+                    </p>
                     <div className="h-56">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={[
-                          { time: "0.00s", angle: 115, target: 160 },
-                          { time: "0.30s", angle: 145, target: 160 },
-                          { time: "0.60s", angle: 168, target: 160 },
-                          { time: "0.90s", angle: 142, target: 160 },
-                          { time: "1.20s", angle: 155, target: 160 }
-                        ]}>
+                        <LineChart
+                          data={[
+                            { time: "0.00s", angle: 115, target: 160 },
+                            { time: "0.30s", angle: 145, target: 160 },
+                            { time: "0.60s", angle: 168, target: 160 },
+                            { time: "0.90s", angle: 142, target: 160 },
+                            { time: "1.20s", angle: 155, target: 160 },
+                          ]}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis dataKey="time" stroke="#64748b" fontSize={10} />
                           <YAxis stroke="#64748b" fontSize={10} domain={[100, 180]} />
                           <RechartsTooltip />
                           <Legend />
-                          <Line type="monotone" dataKey="angle" name="Resolved Knee Angle (°)" stroke="#0d9488" strokeWidth={3} dot={{ r: 4 }} />
-                          <Line type="monotone" dataKey="target" name="Standard Threshold (°)" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth={2} />
+                          <Line
+                            type="monotone"
+                            dataKey="angle"
+                            name="Resolved Knee Angle (°)"
+                            stroke="#0d9488"
+                            strokeWidth={3}
+                            dot={{ r: 4 }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="target"
+                            name="Standard Threshold (°)"
+                            stroke="#94a3b8"
+                            strokeDasharray="5 5"
+                            strokeWidth={2}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -2888,22 +3797,35 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                   {/* Ground Impact Loading Force */}
                   <Card className="glass-card ice-glow p-6 text-xs">
-                    <h4 className="font-bold text-slate-800 text-sm mb-1">Ground Impact Force (Newtons)</h4>
-                    <p className="text-[10px] text-muted-foreground mb-4">Deceleration reaction forces during foot strike</p>
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">
+                      Ground Impact Force (Newtons)
+                    </h4>
+                    <p className="text-[10px] text-muted-foreground mb-4">
+                      Deceleration reaction forces during foot strike
+                    </p>
                     <div className="h-56">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={[
-                          { time: "0.00s", impact: 1200 },
-                          { time: "0.30s", impact: 2100 },
-                          { time: "0.60s", impact: 3400 },
-                          { time: "0.90s", impact: 2800 },
-                          { time: "1.20s", impact: 1600 }
-                        ]}>
+                        <AreaChart
+                          data={[
+                            { time: "0.00s", impact: 1200 },
+                            { time: "0.30s", impact: 2100 },
+                            { time: "0.60s", impact: 3400 },
+                            { time: "0.90s", impact: 2800 },
+                            { time: "1.20s", impact: 1600 },
+                          ]}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis dataKey="time" stroke="#64748b" fontSize={10} />
                           <YAxis stroke="#64748b" fontSize={10} />
                           <RechartsTooltip />
-                          <Area type="monotone" dataKey="impact" name="Impact Force (N)" stroke="#ef4444" fill="#fca5a5" fillOpacity={0.4} />
+                          <Area
+                            type="monotone"
+                            dataKey="impact"
+                            name="Impact Force (N)"
+                            stroke="#ef4444"
+                            fill="#fca5a5"
+                            fillOpacity={0.4}
+                          />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
@@ -2912,14 +3834,20 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                 {/* 3. Leg Loading Asymmetry Graph */}
                 <Card className="glass-card ice-glow p-6 text-xs">
-                  <h4 className="font-bold text-slate-800 text-sm mb-1">Bilateral Leg Loading Asymmetry (%)</h4>
-                  <p className="text-[10px] text-muted-foreground mb-4">Distribution of deceleration load between Left and Right leg</p>
+                  <h4 className="font-bold text-slate-800 text-sm mb-1">
+                    Bilateral Leg Loading Asymmetry (%)
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground mb-4">
+                    Distribution of deceleration load between Left and Right leg
+                  </p>
                   <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={[
-                        { name: "Left Leg Load", percent: 43, fill: "#0d9488" },
-                        { name: "Right Leg Load (Overloaded)", percent: 57, fill: "#ef4444" }
-                      ]}>
+                      <BarChart
+                        data={[
+                          { name: "Left Leg Load", percent: 43, fill: "#0d9488" },
+                          { name: "Right Leg Load (Overloaded)", percent: 57, fill: "#ef4444" },
+                        ]}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis dataKey="name" stroke="#64748b" fontSize={10} />
                         <YAxis stroke="#64748b" fontSize={10} domain={[0, 100]} />
@@ -2943,7 +3871,7 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                       { key: "7_sessions", label: "7 Sessions" },
                       { key: "30_days", label: "30 Days" },
                       { key: "3_months", label: "3 Months" },
-                      { key: "season", label: "Season" }
+                      { key: "season", label: "Season" },
                     ].map((opt) => (
                       <button
                         key={opt.key}
@@ -2958,34 +3886,64 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                 {/* 1. Multi-metric Progression Line Chart */}
                 <Card className="glass-card ice-glow p-6 text-xs">
-                  <h4 className="font-bold text-slate-800 text-sm mb-1">Performance &amp; Posture Progression Trend ({timeframe.replace("_", " ").toUpperCase()})</h4>
-                  <p className="text-[10px] text-muted-foreground mb-4">Historical tracking across Performance, Posture, and Joint Stability scores</p>
+                  <h4 className="font-bold text-slate-800 text-sm mb-1">
+                    Performance &amp; Posture Progression Trend (
+                    {timeframe.replace("_", " ").toUpperCase()})
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground mb-4">
+                    Historical tracking across Performance, Posture, and Joint Stability scores
+                  </p>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={
-                        timeframe === "7_sessions" ? [
-                          { session: "S1", performance: 72, posture: 68, stability: 60 },
-                          { session: "S2", performance: 74, posture: 70, stability: 62 },
-                          { session: "S3", performance: 75, posture: 71, stability: 64 },
-                          { session: "S4", performance: 78, posture: 73, stability: 65 },
-                          { session: "S5", performance: 80, posture: 74, stability: 66 },
-                          { session: "S6", performance: 81, posture: 75, stability: 67 },
-                          { session: "S7", performance: 83, posture: 75, stability: 68 }
-                        ] : [
-                          { session: "W1", performance: 68, posture: 65, stability: 58 },
-                          { session: "W2", performance: 73, posture: 70, stability: 62 },
-                          { session: "W3", performance: 78, posture: 74, stability: 66 },
-                          { session: "W4", performance: 83, posture: 75, stability: 68 }
-                        ]
-                      }>
+                      <LineChart
+                        data={
+                          timeframe === "7_sessions"
+                            ? [
+                                { session: "S1", performance: 72, posture: 68, stability: 60 },
+                                { session: "S2", performance: 74, posture: 70, stability: 62 },
+                                { session: "S3", performance: 75, posture: 71, stability: 64 },
+                                { session: "S4", performance: 78, posture: 73, stability: 65 },
+                                { session: "S5", performance: 80, posture: 74, stability: 66 },
+                                { session: "S6", performance: 81, posture: 75, stability: 67 },
+                                { session: "S7", performance: 83, posture: 75, stability: 68 },
+                              ]
+                            : [
+                                { session: "W1", performance: 68, posture: 65, stability: 58 },
+                                { session: "W2", performance: 73, posture: 70, stability: 62 },
+                                { session: "W3", performance: 78, posture: 74, stability: 66 },
+                                { session: "W4", performance: 83, posture: 75, stability: 68 },
+                              ]
+                        }
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis dataKey="session" stroke="#64748b" fontSize={10} />
                         <YAxis stroke="#64748b" fontSize={10} domain={[40, 100]} />
                         <RechartsTooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="performance" name="Performance Score" stroke="#0d9488" strokeWidth={3} dot={{ r: 4 }} />
-                        <Line type="monotone" dataKey="posture" name="Posture Alignment" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="stability" name="Joint Stability" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line
+                          type="monotone"
+                          dataKey="performance"
+                          name="Performance Score"
+                          stroke="#0d9488"
+                          strokeWidth={3}
+                          dot={{ r: 4 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="posture"
+                          name="Posture Alignment"
+                          stroke="#10b981"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="stability"
+                          name="Joint Stability"
+                          stroke="#6366f1"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                        />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -2995,24 +3953,37 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Injury Risk Percentage Reduction */}
                   <Card className="glass-card ice-glow p-6 text-xs">
-                    <h4 className="font-bold text-slate-800 text-sm mb-1">Injury Risk Probability Trend (%)</h4>
-                    <p className="text-[10px] text-muted-foreground mb-4">Risk score reduction over historical sessions</p>
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">
+                      Injury Risk Probability Trend (%)
+                    </h4>
+                    <p className="text-[10px] text-muted-foreground mb-4">
+                      Risk score reduction over historical sessions
+                    </p>
                     <div className="h-56">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={[
-                          { session: "S1", risk: 81 },
-                          { session: "S2", risk: 79 },
-                          { session: "S3", risk: 78 },
-                          { session: "S4", risk: 76 },
-                          { session: "S5", risk: 75 },
-                          { session: "S6", risk: 73 },
-                          { session: "S7", risk: 72 }
-                        ]}>
+                        <AreaChart
+                          data={[
+                            { session: "S1", risk: 81 },
+                            { session: "S2", risk: 79 },
+                            { session: "S3", risk: 78 },
+                            { session: "S4", risk: 76 },
+                            { session: "S5", risk: 75 },
+                            { session: "S6", risk: 73 },
+                            { session: "S7", risk: 72 },
+                          ]}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis dataKey="session" stroke="#64748b" fontSize={10} />
                           <YAxis stroke="#64748b" fontSize={10} domain={[40, 100]} />
                           <RechartsTooltip />
-                          <Area type="monotone" dataKey="risk" name="Injury Risk %" stroke="#ef4444" fill="#fca5a5" fillOpacity={0.3} />
+                          <Area
+                            type="monotone"
+                            dataKey="risk"
+                            name="Injury Risk %"
+                            stroke="#ef4444"
+                            fill="#fca5a5"
+                            fillOpacity={0.3}
+                          />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
@@ -3020,23 +3991,34 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                   {/* Sub-scores breakdown bar chart */}
                   <Card className="glass-card ice-glow p-6 text-xs">
-                    <h4 className="font-bold text-slate-800 text-sm mb-1">Biomechanical Sub-Scores Breakdown</h4>
-                    <p className="text-[10px] text-muted-foreground mb-4">Current session individual diagnostic metrics</p>
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">
+                      Biomechanical Sub-Scores Breakdown
+                    </h4>
+                    <p className="text-[10px] text-muted-foreground mb-4">
+                      Current session individual diagnostic metrics
+                    </p>
                     <div className="h-56">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={[
-                          { metric: "Posture", score: ath.postureScore },
-                          { metric: "Performance", score: ath.performanceScore },
-                          { metric: "Stability", score: ath.stabilityScore },
-                          { metric: "Mobility", score: ath.mobilityScore },
-                          { metric: "Landing", score: 64 },
-                          { metric: "Acceleration", score: 88 }
-                        ]}>
+                        <BarChart
+                          data={[
+                            { metric: "Posture", score: ath.postureScore },
+                            { metric: "Performance", score: ath.performanceScore },
+                            { metric: "Stability", score: ath.stabilityScore },
+                            { metric: "Mobility", score: ath.mobilityScore },
+                            { metric: "Landing", score: 64 },
+                            { metric: "Acceleration", score: 88 },
+                          ]}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis dataKey="metric" stroke="#64748b" fontSize={9} />
                           <YAxis stroke="#64748b" fontSize={10} domain={[0, 100]} />
                           <RechartsTooltip />
-                          <Bar dataKey="score" name="Score / 100" fill="#0d9488" radius={[6, 6, 0, 0]} />
+                          <Bar
+                            dataKey="score"
+                            name="Score / 100"
+                            fill="#0d9488"
+                            radius={[6, 6, 0, 0]}
+                          />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -3053,22 +4035,33 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <Card className="glass-card ice-glow p-6 space-y-4">
                     <div>
                       <h3 className="font-bold text-slate-800 text-sm">Active Rehab Checklist</h3>
-                      <p className="text-[10px] text-muted-foreground">Corrective exercises assigned by you that the athlete completes</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Corrective exercises assigned by you that the athlete completes
+                      </p>
                     </div>
 
                     <div className="space-y-2">
                       {customTasks.length === 0 ? (
-                        <p className="text-xs text-muted-foreground italic">No tasks currently assigned.</p>
+                        <p className="text-xs text-muted-foreground italic">
+                          No tasks currently assigned.
+                        </p>
                       ) : (
                         customTasks.map((task: any, index: number) => (
-                          <div key={index} className="flex justify-between items-center bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs">
+                          <div
+                            key={index}
+                            className="flex justify-between items-center bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs"
+                          >
                             <div>
-                              <span className="font-bold text-slate-800 block">{task.exercise}</span>
+                              <span className="font-bold text-slate-800 block">
+                                {task.exercise}
+                              </span>
                               <span className="text-[10px] text-muted-foreground block mt-0.5">
-                                Sets: <strong className="text-primary">{task.sets}</strong> · Reps: <strong className="text-primary">{task.reps}</strong> · Focus: <span className="text-primary">{task.target}</span>
+                                Sets: <strong className="text-primary">{task.sets}</strong> · Reps:{" "}
+                                <strong className="text-primary">{task.reps}</strong> · Focus:{" "}
+                                <span className="text-primary">{task.target}</span>
                               </span>
                             </div>
-                            <Button 
+                            <Button
                               onClick={() => handleDeleteTask(index)}
                               variant="ghost"
                               size="sm"
@@ -3082,43 +4075,57 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                     </div>
 
                     {/* Add exercise form */}
-                    <form onSubmit={handleAddTask} className="border-t border-slate-100 pt-4 grid grid-cols-1 md:grid-cols-4 gap-2 text-xs">
+                    <form
+                      onSubmit={handleAddTask}
+                      className="border-t border-slate-100 pt-4 grid grid-cols-1 md:grid-cols-4 gap-2 text-xs"
+                    >
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700 block text-[10px] uppercase">Exercise Name</label>
-                        <Input 
-                          placeholder="e.g. Glute Bridges" 
+                        <label className="font-semibold text-slate-700 block text-[10px] uppercase">
+                          Exercise Name
+                        </label>
+                        <Input
+                          placeholder="e.g. Glute Bridges"
                           value={newTaskName}
                           onChange={(e) => setNewTaskName(e.target.value)}
                           className="text-xs h-8 border-slate-200"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700 block text-[10px] uppercase">Sets</label>
-                        <Input 
-                          placeholder="e.g. 3" 
+                        <label className="font-semibold text-slate-700 block text-[10px] uppercase">
+                          Sets
+                        </label>
+                        <Input
+                          placeholder="e.g. 3"
                           value={newTaskSets}
                           onChange={(e) => setNewTaskSets(e.target.value)}
                           className="text-xs h-8 border-slate-200"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700 block text-[10px] uppercase">Reps</label>
-                        <Input 
-                          placeholder="e.g. 12" 
+                        <label className="font-semibold text-slate-700 block text-[10px] uppercase">
+                          Reps
+                        </label>
+                        <Input
+                          placeholder="e.g. 12"
                           value={newTaskReps}
                           onChange={(e) => setNewTaskReps(e.target.value)}
                           className="text-xs h-8 border-slate-200"
                         />
                       </div>
                       <div className="space-y-1 flex items-end">
-                        <Button type="submit" className="bg-primary hover:bg-primary/95 text-white font-bold text-xs h-8 w-full">
+                        <Button
+                          type="submit"
+                          className="bg-primary hover:bg-primary/95 text-white font-bold text-xs h-8 w-full"
+                        >
                           Add Task
                         </Button>
                       </div>
                       <div className="md:col-span-4 space-y-1 mt-1">
-                        <label className="font-semibold text-slate-700 block text-[10px] uppercase">Focus Target Area / Why Am I Doing This?</label>
-                        <Input 
-                          placeholder="Recommended because latest analysis detected asymmetry..." 
+                        <label className="font-semibold text-slate-700 block text-[10px] uppercase">
+                          Focus Target Area / Why Am I Doing This?
+                        </label>
+                        <Input
+                          placeholder="Recommended because latest analysis detected asymmetry..."
                           value={newTaskTarget}
                           onChange={(e) => setNewTaskTarget(e.target.value)}
                           className="text-xs h-8 border-slate-200"
@@ -3133,11 +4140,13 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                   <Card className="glass-card ice-glow p-6 space-y-4">
                     <div>
                       <h3 className="font-bold text-slate-800 text-sm">Direct Suggestions</h3>
-                      <p className="text-[10px] text-muted-foreground">Type Recovery advice to their inbox</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Type Recovery advice to their inbox
+                      </p>
                     </div>
 
                     <form onSubmit={handlePublishSuggestion} className="space-y-2 text-xs">
-                      <Textarea 
+                      <Textarea
                         rows={3}
                         placeholder={`Type recovery recommendations to ${ath.name}...`}
                         value={personalSuggestionInput}
@@ -3145,7 +4154,10 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                         className="border-slate-200 text-xs focus-visible:ring-primary"
                       />
                       <div className="flex justify-end">
-                        <Button type="submit" className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs py-2 px-4 rounded-lg">
+                        <Button
+                          type="submit"
+                          className="bg-primary hover:bg-primary/95 text-white font-semibold text-xs py-2 px-4 rounded-lg"
+                        >
                           Send Message
                         </Button>
                       </div>
@@ -3155,13 +4167,22 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                     <div className="space-y-2 border-t border-slate-100 pt-4">
                       <h4 className="font-bold text-slate-700 text-xs">Suggestions History</h4>
                       {personalSuggestions.length === 0 ? (
-                        <p className="text-[10px] text-muted-foreground italic">No suggestions sent yet.</p>
+                        <p className="text-[10px] text-muted-foreground italic">
+                          No suggestions sent yet.
+                        </p>
                       ) : (
                         <div className="space-y-2 max-h-48 overflow-y-auto">
                           {personalSuggestions.map((item: any) => (
-                            <div key={item.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
-                              <span className="text-[9px] text-primary font-semibold block">{item.timestamp}</span>
-                              <span className="text-muted-foreground leading-relaxed block">{item.text}</span>
+                            <div
+                              key={item.id}
+                              className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1"
+                            >
+                              <span className="text-[9px] text-primary font-semibold block">
+                                {item.timestamp}
+                              </span>
+                              <span className="text-muted-foreground leading-relaxed block">
+                                {item.text}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -3184,7 +4205,9 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
 
                     <form onSubmit={handleSubmitFeedback} className="space-y-4 text-xs font-body">
                       <div className="space-y-2">
-                        <label className="font-semibold text-slate-700 block">Feedback Category</label>
+                        <label className="font-semibold text-slate-700 block">
+                          Feedback Category
+                        </label>
                         <select
                           value={feedbackTag}
                           onChange={(e) => setFeedbackTag(e.target.value)}
@@ -3198,7 +4221,9 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                       </div>
 
                       <div className="space-y-2">
-                        <label className="font-semibold text-slate-700 block">Observation Notes &amp; Recommendations</label>
+                        <label className="font-semibold text-slate-700 block">
+                          Observation Notes &amp; Recommendations
+                        </label>
                         <Textarea
                           rows={5}
                           value={feedbackText}
@@ -3207,9 +4232,12 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                           className="bg-white border-slate-200 text-xs text-foreground placeholder:text-slate-400 focus-visible:ring-primary"
                         />
                       </div>
-                      
+
                       <div className="flex justify-end">
-                        <Button type="submit" className="bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2.5 px-6 rounded-lg flex items-center gap-1.5 shadow-sm">
+                        <Button
+                          type="submit"
+                          className="bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2.5 px-6 rounded-lg flex items-center gap-1.5 shadow-sm"
+                        >
                           <UserCheck className="h-4 w-4" /> Publish Review to Hub
                         </Button>
                       </div>
@@ -3231,8 +4259,12 @@ export function CoachDashboard({ user, signOut, profile, askCoach }: CoachDashbo
                           className="w-full bg-white border border-slate-200 hover:border-primary/40 rounded-xl text-left hover:bg-slate-50 p-3 flex flex-col justify-between"
                         >
                           <div>
-                            <span className="text-xs font-bold text-foreground block">{p.title}</span>
-                            <span className="text-[10px] text-muted-foreground block mt-1">{p.desc}</span>
+                            <span className="text-xs font-bold text-foreground block">
+                              {p.title}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground block mt-1">
+                              {p.desc}
+                            </span>
                           </div>
                           <span className="text-[10px] text-primary hover:text-amber-300 font-semibold mt-3 block flex items-center gap-0.5">
                             Apply Template <ChevronRight className="h-3 w-3" />

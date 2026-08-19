@@ -57,9 +57,9 @@ function ProfilePage() {
         setRoles([nextRole]);
         toast.success(`Role switched to ${nextRole}`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Profile] switchUserRole error:", err);
-      toast.error(err.message || "Failed to switch role");
+      toast.error(err instanceof Error ? err.message : "Failed to switch role");
     } finally {
       setSwitchingRole(false);
     }
@@ -71,7 +71,11 @@ function ProfilePage() {
       let rs = null;
 
       try {
-        const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .maybeSingle();
         prof = data;
         console.log("[Profile] Fetched profile successfully:", prof);
       } catch (err) {
@@ -103,7 +107,7 @@ function ProfilePage() {
       }
       setLoading(false);
     })();
-  }, [user.id]);
+  }, [user.id, user.email]);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,10 +181,15 @@ function ProfilePage() {
             {roles.includes("coach") ? "Coach profile" : "Athlete profile"}
           </h1>
           <div className="text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 gap-y-1.5">
-            <span>Signed in as <span className="font-mono">{user.email}</span></span>
+            <span>
+              Signed in as <span className="font-mono">{user.email}</span>
+            </span>
             {roles.length > 0 && (
               <>
-                <span>· role: <span className="text-primary font-medium capitalize">{roles.join(", ")}</span></span>
+                <span>
+                  · role:{" "}
+                  <span className="text-primary font-medium capitalize">{roles.join(", ")}</span>
+                </span>
               </>
             )}
           </div>
@@ -272,18 +281,30 @@ function ProfilePage() {
               <Field label={roles.includes("coach") ? "Specialization (Sport)" : "Primary sport"}>
                 <Input
                   value={p.primary_sport ?? ""}
-                  placeholder={roles.includes("coach") ? "e.g. Sprinting, Cricket, Football" : "Sprinting, Cricket, Football…"}
+                  placeholder={
+                    roles.includes("coach")
+                      ? "e.g. Sprinting, Cricket, Football"
+                      : "Sprinting, Cricket, Football…"
+                  }
                   onChange={(e) => setP({ ...p, primary_sport: e.target.value })}
                 />
               </Field>
-              <Field label={roles.includes("coach") ? "Institution / Organization" : "Position / discipline"}>
+              <Field
+                label={
+                  roles.includes("coach") ? "Institution / Organization" : "Position / discipline"
+                }
+              >
                 <Input
                   value={p.position ?? ""}
                   placeholder={roles.includes("coach") ? "e.g. National Academy, High School" : ""}
                   onChange={(e) => setP({ ...p, position: e.target.value })}
                 />
               </Field>
-              <Field label={roles.includes("coach") ? "Coaching experience (years)" : "Experience (years)"}>
+              <Field
+                label={
+                  roles.includes("coach") ? "Coaching experience (years)" : "Experience (years)"
+                }
+              >
                 <Input
                   type="number"
                   value={p.experience_years ?? ""}
@@ -292,10 +313,18 @@ function ProfilePage() {
                   }
                 />
               </Field>
-              <Field label={roles.includes("coach") ? "Certifications / Credentials" : "Training frequency"}>
+              <Field
+                label={
+                  roles.includes("coach") ? "Certifications / Credentials" : "Training frequency"
+                }
+              >
                 <Input
                   value={p.training_frequency ?? ""}
-                  placeholder={roles.includes("coach") ? "e.g. IAAF Level 2, UEFA B License" : "e.g. 5 sessions / week"}
+                  placeholder={
+                    roles.includes("coach")
+                      ? "e.g. IAAF Level 2, UEFA B License"
+                      : "e.g. 5 sessions / week"
+                  }
                   onChange={(e) => setP({ ...p, training_frequency: e.target.value })}
                 />
               </Field>
@@ -304,7 +333,9 @@ function ProfilePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>{roles.includes("coach") ? "Background & Philosophy" : "Background"}</CardTitle>
+              <CardTitle>
+                {roles.includes("coach") ? "Background & Philosophy" : "Background"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {!roles.includes("coach") && (

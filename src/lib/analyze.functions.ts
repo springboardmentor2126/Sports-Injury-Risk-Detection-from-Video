@@ -357,13 +357,15 @@ export const switchUserRole = createServerFn({ method: "POST" })
     console.log("[switchUserRole] Request received:", data);
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
+
     console.log("[switchUserRole] URL:", supabaseUrl, "Has Service Key:", !!serviceRoleKey);
-    
+
     if (!supabaseUrl || !serviceRoleKey) {
-      throw new Error("Supabase credentials (URL or Service Role Key) not configured in environment variables.");
+      throw new Error(
+        "Supabase credentials (URL or Service Role Key) not configured in environment variables.",
+      );
     }
-    
+
     const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false },
     });
@@ -385,7 +387,7 @@ export const switchUserRole = createServerFn({ method: "POST" })
         .from("user_roles")
         .update({ role: data.newRole })
         .eq("user_id", data.userId);
-        
+
       if (updateError) {
         console.error("[switchUserRole] Update error:", updateError);
         throw new Error(`Failed to update role: ${updateError.message}`);
@@ -394,7 +396,7 @@ export const switchUserRole = createServerFn({ method: "POST" })
       const { error: insertError } = await serviceClient
         .from("user_roles")
         .insert({ user_id: data.userId, role: data.newRole });
-        
+
       if (insertError) {
         console.error("[switchUserRole] Insert error:", insertError);
         throw new Error(`Failed to insert role: ${insertError.message}`);

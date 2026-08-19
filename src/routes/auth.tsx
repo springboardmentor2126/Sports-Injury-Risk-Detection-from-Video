@@ -63,7 +63,7 @@ function AuthPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    
+
     if (data?.session) {
       toast.success("Account created — you're signed in");
       navigate({ to: "/profile" });
