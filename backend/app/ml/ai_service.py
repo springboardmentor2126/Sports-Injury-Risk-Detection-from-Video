@@ -22,9 +22,11 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # ─── Model to use for all Groq calls ─────────────────────────────────────────
-# llama-3.3-70b-versatile: best quality on Groq free tier.
-# Free tier limits: 14,400 req/day, 30 req/min, 131,072 tokens/min.
-GROQ_MODEL = "llama-3.3-70b-versatile"
+# groq/compound-mini: Groq's own production model, confirmed available on this API key.
+# Available models on this key: qwen/qwen3.6-27b, qwen/qwen3.8-27b,
+#   openai/gpt-oss-20b, openai/gpt-oss-120b, groq/compound, groq/compound-mini
+# groq/compound-mini is chosen for best balance of speed, quality and rate limits.
+GROQ_MODEL = "groq/compound-mini"
 
 # ─── Initialise Groq client ───────────────────────────────────────────────────
 _client: Optional[Groq] = None
@@ -67,7 +69,11 @@ def _call_groq(
                     completion_tokens=getattr(completion.usage, "completion_tokens", 0) or 0,
                     total_tokens=getattr(completion.usage, "total_tokens", 0) or 0,
                 )
-            return completion.choices[0].message.content.strip()
+            raw_content = completion.choices[0].message.content.strip()
+            # Strip <think>...</think> reasoning blocks emitted by Qwen3 models
+            import re as _re
+            raw_content = _re.sub(r"<think>.*?</think>", "", raw_content, flags=_re.DOTALL).strip()
+            return raw_content
         except Exception as e:
             err_str = str(e)
             if "429" in err_str or "rate_limit" in err_str.lower() or "rate limit" in err_str.lower():

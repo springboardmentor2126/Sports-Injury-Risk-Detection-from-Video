@@ -26,8 +26,8 @@ _DEFAULT_STATS: Dict[str, Any] = {
     "today_requests": 0,
     "today_tokens": 0,
     "last_used_at": None,
-    "model_name": "llama-3.3-70b-versatile",
-    "daily_token_limit": 100000,  # Recommended safety threshold
+    "model_name": "llama-3.1-8b-instant",
+    "daily_token_limit": 1000000,  # Groq free-tier limit for llama-3.1-8b-instant
 }
 
 
